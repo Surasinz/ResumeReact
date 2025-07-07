@@ -1,0 +1,42 @@
+.card {
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  min-width: 50%;
+}
+
+.dark-theme .card {
+  background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.03);
+}
+
+.light-theme .card {
+  background: #ffffff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card-icon {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.card-icon img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(0, 255, 255, 0.4));
+}
+
+.card h2 {
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 1rem;
+  margin-top: -0.5rem;
+  padding-bottom: 0.5rem;
+  text-align: center;
+  color: inherit;
+}
