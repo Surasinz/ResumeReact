@@ -20,6 +20,7 @@ function Profile() {
           <p className="profile-description">
               Tel : (+66) 882822749
           </p>
+          <p>Email : panto1412@gmail.com</p>
         </div>
       </div>
     </Card>

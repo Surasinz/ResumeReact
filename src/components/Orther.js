@@ -1,7 +1,7 @@
 import Card from './Card';
 import ModelViewer from './ModelViewer';
 
-function GitHub() {
+function Orther() {
   return (
     <Card title="GitHub">
       <ModelViewer />
@@ -9,4 +9,4 @@ function GitHub() {
   );
 }
 
-export default GitHub;
+export default Orther;
