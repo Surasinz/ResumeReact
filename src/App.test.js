@@ -1,6 +1,34 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import App from './App';
 
+const createCanvasContext = () => ({
+  clearRect: jest.fn(),
+  fillRect: jest.fn(),
+  fillText: jest.fn(),
+  setTransform: jest.fn(),
+  fillStyle: '',
+  font: '',
+});
+
+beforeEach(() => {
+  window.localStorage.clear();
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    value: jest.fn().mockReturnValue({
+      matches: false,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+    }),
+  });
+  jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(createCanvasContext());
+  jest.spyOn(window, 'requestAnimationFrame').mockReturnValue(1);
+  jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
+});
+
 test('renders the portfolio headline, navigation, and contact details', () => {
   render(<App />);
   expect(screen.getByRole('heading', { name: /Hi, I'm Surachet Panto/i })).toBeInTheDocument();
@@ -84,6 +112,57 @@ test('lets keyboard and touch users pause and resume each skills marquee', () =>
     screen.getByRole('button', { name: /Pause programming languages animation/i })
   ).toHaveAttribute('aria-pressed', 'false');
   expect(marquee.querySelector('.marquee-track')).not.toHaveClass('is-paused');
+});
+
+test('toggles the Matrix background and restores the saved preference', () => {
+  const { unmount } = render(<App />);
+  const disableButton = screen.getByRole('button', {
+    name: /Disable Matrix background animation/i,
+  });
+
+  expect(disableButton).toHaveAttribute('aria-pressed', 'true');
+  fireEvent.click(disableButton);
+  expect(window.localStorage.getItem('surachet-matrix-animation')).toBe('false');
+  expect(
+    screen.getByRole('button', { name: /Enable Matrix background animation/i })
+  ).toHaveAttribute('aria-pressed', 'false');
+
+  unmount();
+  render(<App />);
+  expect(
+    screen.getByRole('button', { name: /Enable Matrix background animation/i })
+  ).toHaveAttribute('aria-pressed', 'false');
+});
+
+test('defaults the Matrix background to off when reduced motion is preferred', () => {
+  window.matchMedia.mockReturnValue({
+    matches: true,
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+  });
+
+  render(<App />);
+
+  expect(
+    screen.getByRole('button', { name: /Enable Matrix background animation/i })
+  ).toHaveAttribute('aria-pressed', 'false');
+  expect(window.localStorage.getItem('surachet-matrix-animation')).toBeNull();
+});
+
+test('sizes the Matrix canvas and releases its animation resources', () => {
+  const removeEventListener = jest.spyOn(window, 'removeEventListener');
+  const { container, unmount } = render(<App />);
+  const canvas = container.querySelector('.matrix-background');
+
+  expect(canvas.width).toBeGreaterThan(0);
+  expect(canvas.height).toBeGreaterThan(0);
+  expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledWith('2d', {
+    alpha: true,
+  });
+
+  unmount();
+  expect(window.cancelAnimationFrame).toHaveBeenCalledWith(1);
+  expect(removeEventListener).toHaveBeenCalledWith('resize', expect.any(Function));
 });
 
 test('tilts the featured project visual toward the pointer and resets on leave', () => {

@@ -39,12 +39,74 @@ a {
 }
 
 .site-shell {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   overflow-x: clip;
   background:
     radial-gradient(circle at 70% 8%, rgba(154, 120, 255, 0.12), transparent 23rem),
     linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
   background-size: auto, 72px 72px;
+}
+
+.matrix-background {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+.matrix-background.is-enabled {
+  opacity: 0.14;
+}
+
+.matrix-toggle {
+  position: fixed;
+  z-index: 60;
+  right: 24px;
+  bottom: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 42px;
+  border: 1px solid rgba(199, 255, 53, 0.45);
+  border-radius: 999px;
+  padding: 0.45rem 0.85rem 0.45rem 0.5rem;
+  background: rgba(10, 10, 13, 0.86);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 24px rgba(198, 255, 0, 0.08);
+  color: var(--paper-muted);
+  font: inherit;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  backdrop-filter: blur(14px);
+  cursor: pointer;
+  transition: border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.matrix-toggle:hover,
+.matrix-toggle:focus-visible {
+  border-color: var(--acid);
+  color: var(--acid);
+  transform: translateY(-2px);
+}
+
+.matrix-toggle-icon {
+  display: grid;
+  place-items: center;
+  width: 29px;
+  height: 29px;
+  border-radius: 50%;
+  background: var(--acid);
+  color: var(--ink);
+  font-family: monospace;
+  font-size: 0.65rem;
+  box-shadow: 0 0 16px rgba(198, 255, 0, 0.3);
 }
 
 .topbar {
@@ -1152,6 +1214,26 @@ footer p {
     height: 64px;
   }
 
+  .matrix-toggle {
+    right: 16px;
+    bottom: 16px;
+  }
+
+  .matrix-toggle > span:last-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .matrix-toggle {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+
   .hero {
     min-height: auto;
     padding: 110px 0 70px;
@@ -1363,5 +1445,25 @@ footer p {
     --glare-x: 50% !important;
     --glare-y: 50% !important;
     transform: none !important;
+  }
+}
+
+@media (pointer: fine) {
+  html,
+  body,
+  .site-shell,
+  .site-shell * {
+    cursor: url('./assets/cursor.png') 3 3, auto;
+  }
+
+  .site-shell a,
+  .site-shell button,
+  .site-shell [role='button'],
+  .site-shell input,
+  .site-shell select,
+  .site-shell textarea,
+  .site-shell label,
+  .site-shell summary {
+    cursor: url('./assets/hand.png') 4 4, pointer;
   }
 }
