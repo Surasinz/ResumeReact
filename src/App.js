@@ -325,12 +325,18 @@ function App() {
       <button
         className="matrix-toggle"
         type="button"
+        role="switch"
         onClick={toggleMatrixBackground}
-        aria-pressed={matrixEnabled}
+        aria-checked={matrixEnabled}
         aria-label={`${matrixEnabled ? 'Disable' : 'Enable'} Matrix background animation`}
       >
-        <span className="matrix-toggle-icon" aria-hidden="true">01</span>
-        <span>{matrixEnabled ? 'Disable animation' : 'Enable animation'}</span>
+        <span className="matrix-switch-track" aria-hidden="true">
+          <span className="matrix-switch-thumb" />
+        </span>
+        <span className="matrix-toggle-label" aria-hidden="true">
+          <span>Matrix rain</span>
+          <span>{matrixEnabled ? 'On' : 'Off'}</span>
+        </span>
       </button>
 
       <header className="topbar">
