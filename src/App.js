@@ -1,5 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './App.css';
+
+const EMAIL = 'surachetpan@hotmail.com';
 
 const experiences = [
   {
@@ -63,7 +65,107 @@ function SectionHeading({ number, eyebrow, title }) {
   );
 }
 
+function SkillMarquee({ label, items, reverse = false }) {
+  const [paused, setPaused] = useState(false);
+
+  const renderItems = (duplicate = false) => (
+    <div className="marquee-group" aria-hidden={duplicate || undefined}>
+      {items.map((skill, index) => (
+        <span className="skill-pill" key={`${duplicate ? 'duplicate-' : ''}${skill}`}>
+          <small>{String(index + 1).padStart(2, '0')}</small>
+          {skill}
+        </span>
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="skill-marquee" data-reveal>
+      <div className="marquee-header">
+        <p className="card-kicker">{label}</p>
+        <button
+          className="marquee-toggle"
+          type="button"
+          onClick={() => setPaused((current) => !current)}
+          aria-pressed={paused}
+          aria-label={`${paused ? 'Resume' : 'Pause'} ${label} animation`}
+        >
+          <span aria-hidden="true">{paused ? '▶' : 'Ⅱ'}</span>
+          {paused ? 'Play' : 'Pause'}
+        </button>
+      </div>
+      <div className="marquee-viewport">
+        <div
+          className={`marquee-track${reverse ? ' marquee-track-reverse' : ''}${
+            paused ? ' is-paused' : ''
+          }`}
+        >
+          {renderItems()}
+          {renderItems(true)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProjectVisual() {
+  const visualRef = useRef(null);
+
+  const handleMouseMove = (event) => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
+    const visual = visualRef.current;
+    if (!visual) return;
+
+    const bounds = visual.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+
+    const pointerX = (event.clientX - bounds.left) / bounds.width;
+    const pointerY = (event.clientY - bounds.top) / bounds.height;
+
+    visual.style.setProperty('--tilt-x', `${(0.5 - pointerY) * 10}deg`);
+    visual.style.setProperty('--tilt-y', `${(pointerX - 0.5) * 10}deg`);
+    visual.style.setProperty('--glare-x', `${pointerX * 100}%`);
+    visual.style.setProperty('--glare-y', `${pointerY * 100}%`);
+  };
+
+  const resetTilt = () => {
+    const visual = visualRef.current;
+    if (!visual) return;
+
+    visual.style.setProperty('--tilt-x', '0deg');
+    visual.style.setProperty('--tilt-y', '0deg');
+    visual.style.setProperty('--glare-x', '50%');
+    visual.style.setProperty('--glare-y', '50%');
+  };
+
+  return (
+    <div
+      className="project-visual-wrap"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={resetTilt}
+      data-testid="project-tilt"
+      aria-hidden="true"
+    >
+      <div className="project-visual" ref={visualRef}>
+        <div className="scan-grid" />
+        <div className="helmet">
+          <span className="helmet-shell" />
+          <span className="helmet-visor" />
+        </div>
+        <span className="detection-corner corner-one" />
+        <span className="detection-corner corner-two" />
+        <div className="detection-label">Helmet · 98.6%</div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
+  const [copyState, setCopyState] = useState('idle');
+  const copyResetTimer = useRef(null);
+  const isMounted = useRef(true);
+
   useEffect(() => {
     const elements = document.querySelectorAll('[data-reveal]');
     if (!('IntersectionObserver' in window)) {
@@ -86,6 +188,32 @@ function App() {
     elements.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    isMounted.current = true;
+
+    return () => {
+      isMounted.current = false;
+      window.clearTimeout(copyResetTimer.current);
+    };
+  }, []);
+
+  const copyEmail = async () => {
+    let nextState;
+
+    try {
+      await navigator.clipboard.writeText(EMAIL);
+      nextState = 'copied';
+    } catch {
+      nextState = 'error';
+    }
+
+    if (!isMounted.current) return;
+
+    setCopyState(nextState);
+    window.clearTimeout(copyResetTimer.current);
+    copyResetTimer.current = window.setTimeout(() => setCopyState('idle'), 2000);
+  };
 
   return (
     <div className="site-shell">
@@ -205,7 +333,12 @@ function App() {
           <SectionHeading number="02" eyebrow="Experience" title="Where I've made an impact." />
           <div className="timeline">
             {experiences.map((item, index) => (
-              <article className="timeline-item" data-reveal key={`${item.role}-${item.period}`}>
+              <article
+                className="timeline-item"
+                data-reveal
+                style={{ '--reveal-delay': `${index * 80}ms` }}
+                key={`${item.role}-${item.period}`}
+              >
                 <div className="timeline-index">{String(index + 1).padStart(2, '0')}</div>
                 <div className="timeline-meta">
                   <p>{item.period}</p>
@@ -240,39 +373,16 @@ function App() {
 
         <section className="skills section" id="skills">
           <SectionHeading number="04" eyebrow="Technical skills" title="Tools I use to ship." />
-          <div className="skill-groups">
-            <div className="skill-group" data-reveal>
-              <p className="card-kicker">Programming languages</p>
-              <div className="badge-grid">
-                {programmingLanguages.map((skill, index) => (
-                  <span key={skill}><small>{String(index + 1).padStart(2, '0')}</small>{skill}</span>
-                ))}
-              </div>
-            </div>
-            <div className="skill-group skill-group-alt" data-reveal>
-              <p className="card-kicker">Technologies &amp; tools</p>
-              <div className="badge-grid">
-                {tools.map((skill, index) => (
-                  <span key={skill}><small>{String(index + 1).padStart(2, '0')}</small>{skill}</span>
-                ))}
-              </div>
-            </div>
+          <div className="skills-marquee">
+            <SkillMarquee label="Programming languages" items={programmingLanguages} />
+            <SkillMarquee label="Technologies & tools" items={tools} reverse />
           </div>
         </section>
 
         <section className="projects section" id="projects">
           <SectionHeading number="05" eyebrow="Featured project" title="Built beyond the brief." />
           <article className="project-card" data-reveal>
-            <div className="project-visual" aria-hidden="true">
-              <div className="scan-grid" />
-              <div className="helmet">
-                <span className="helmet-shell" />
-                <span className="helmet-visor" />
-              </div>
-              <span className="detection-corner corner-one" />
-              <span className="detection-corner corner-two" />
-              <div className="detection-label">Helmet · 98.6%</div>
-            </div>
+            <ProjectVisual />
             <div className="project-copy">
               <p className="card-kicker">AI · Computer vision</p>
               <h3>Motorcycle Helmet Compliance Detection System</h3>
@@ -293,9 +403,23 @@ function App() {
         <section className="contact section" id="contact">
           <p className="contact-kicker" data-reveal>Have a project or opportunity?</p>
           <h2 data-reveal>Let&apos;s build something <span>reliable.</span></h2>
-          <a className="contact-email" href="mailto:surachetpan@hotmail.com" data-reveal>
-            surachetpan@hotmail.com <ArrowIcon />
-          </a>
+          <button
+            className="contact-email"
+            type="button"
+            onClick={copyEmail}
+            data-copy-state={copyState}
+            data-reveal
+            aria-label={`Copy ${EMAIL} to clipboard`}
+          >
+            <span className="copy-status" role="status" aria-live="polite">
+              {copyState === 'copied'
+                ? 'Copied! ✅'
+                : copyState === 'error'
+                  ? 'Copy failed — try again'
+                  : EMAIL}
+            </span>
+            <ArrowIcon />
+          </button>
           <div className="contact-details" data-reveal>
             <a href="tel:+66882822749">
               <span>Phone</span>
