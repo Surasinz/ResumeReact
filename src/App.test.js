@@ -3,8 +3,14 @@ import App from './App';
 
 const createCanvasContext = () => ({
   clearRect: jest.fn(),
+  createRadialGradient: jest.fn(() => ({
+    addColorStop: jest.fn(),
+  })),
+  drawImage: jest.fn(),
   fillRect: jest.fn(),
   fillText: jest.fn(),
+  globalCompositeOperation: 'source-over',
+  imageSmoothingEnabled: true,
   setTransform: jest.fn(),
   fillStyle: '',
   font: '',
@@ -125,27 +131,29 @@ test('lets keyboard and touch users pause and resume each skills marquee', () =>
   expect(marquee.querySelector('.marquee-track')).not.toHaveClass('is-paused');
 });
 
-test('toggles the Matrix background and restores the saved preference', () => {
+test('toggles the Pixel Liquid background and restores the saved preference', () => {
   const { unmount } = render(<App />);
   const disableButton = screen.getByRole('switch', {
-    name: /Matrix background animation/i,
+    name: /Pixel liquid background animation/i,
   });
 
   expect(disableButton).toHaveAttribute('aria-checked', 'true');
   fireEvent.click(disableButton);
-  expect(window.localStorage.getItem('surachet-matrix-animation')).toBe('false');
   expect(
-    screen.getByRole('switch', { name: /Matrix background animation/i })
+    window.localStorage.getItem('surachet-pixel-liquid-animation')
+  ).toBe('false');
+  expect(
+    screen.getByRole('switch', { name: /Pixel liquid background animation/i })
   ).toHaveAttribute('aria-checked', 'false');
 
   unmount();
   render(<App />);
   expect(
-    screen.getByRole('switch', { name: /Matrix background animation/i })
+    screen.getByRole('switch', { name: /Pixel liquid background animation/i })
   ).toHaveAttribute('aria-checked', 'false');
 });
 
-test('defaults the Matrix background to off when reduced motion is preferred', () => {
+test('defaults the Pixel Liquid background to off when reduced motion is preferred', () => {
   window.matchMedia.mockReturnValue({
     matches: true,
     addEventListener: jest.fn(),
@@ -155,21 +163,24 @@ test('defaults the Matrix background to off when reduced motion is preferred', (
   render(<App />);
 
   expect(
-    screen.getByRole('switch', { name: /Matrix background animation/i })
+    screen.getByRole('switch', { name: /Pixel liquid background animation/i })
   ).toHaveAttribute('aria-checked', 'false');
-  expect(window.localStorage.getItem('surachet-matrix-animation')).toBeNull();
+  expect(
+    window.localStorage.getItem('surachet-pixel-liquid-animation')
+  ).toBeNull();
 });
 
-test('sizes the Matrix canvas and releases its animation resources', () => {
+test('renders the Pixel Liquid canvas in exact 3px blocks and releases resources', () => {
   const removeEventListener = jest.spyOn(window, 'removeEventListener');
   const { container, unmount } = render(<App />);
-  const canvas = container.querySelector('.matrix-background');
+  const canvas = container.querySelector('.pixel-liquid-background');
 
   expect(canvas.width).toBeGreaterThan(0);
   expect(canvas.height).toBeGreaterThan(0);
-  expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledWith('2d', {
-    alpha: true,
-  });
+  expect(canvas.width % 3).toBe(0);
+  expect(canvas.height % 3).toBe(0);
+  expect(canvas).toHaveAttribute('data-pixel-size', '3');
+  expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledTimes(2);
 
   unmount();
   expect(window.cancelAnimationFrame).toHaveBeenCalledWith(1);

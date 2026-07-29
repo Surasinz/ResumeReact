@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
+import PixelLiquidBackground from './PixelLiquidBackground';
 import WebShimeji from './shimeji/WebShimeji';
 import ViewSidebar from './ViewSidebar';
 
 const EMAIL = 'surachetpan@hotmail.com';
-const MATRIX_PREFERENCE_KEY = 'surachet-matrix-animation';
-const MATRIX_CHARACTERS = '01{}[]<>/\\$#*+アイウエオカキクケコ';
+const PIXEL_LIQUID_PREFERENCE_KEY = 'surachet-pixel-liquid-animation';
+const LEGACY_MATRIX_PREFERENCE_KEY = 'surachet-matrix-animation';
 
 const experiences = [
   {
@@ -229,91 +230,17 @@ function AvatarSpotlight() {
   );
 }
 
-function getInitialMatrixPreference() {
+function getInitialPixelLiquidPreference() {
   try {
-    const savedPreference = window.localStorage.getItem(MATRIX_PREFERENCE_KEY);
+    const savedPreference =
+      window.localStorage.getItem(PIXEL_LIQUID_PREFERENCE_KEY) ??
+      window.localStorage.getItem(LEGACY_MATRIX_PREFERENCE_KEY);
     if (savedPreference !== null) return savedPreference === 'true';
   } catch {
     // Storage can be unavailable in privacy-restricted browser contexts.
   }
 
   return !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-}
-
-function MatrixBackground({ enabled }) {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !enabled) return undefined;
-
-    const context = canvas.getContext('2d', { alpha: true });
-    if (!context) return undefined;
-
-    const fontSize = 16;
-    const frameInterval = 50;
-    let animationFrame;
-    let lastFrameTime = 0;
-    let drops = [];
-
-    const resizeCanvas = () => {
-      const pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-
-      canvas.width = Math.floor(width * pixelRatio);
-      canvas.height = Math.floor(height * pixelRatio);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
-
-      const columnCount = Math.ceil(width / fontSize);
-      drops = Array.from({ length: columnCount }, () =>
-        Math.floor(Math.random() * -(height / fontSize))
-      );
-    };
-
-    const drawFrame = (timestamp) => {
-      animationFrame = window.requestAnimationFrame(drawFrame);
-      if (timestamp - lastFrameTime < frameInterval) return;
-      lastFrameTime = timestamp;
-
-      context.fillStyle = 'rgba(10, 10, 13, 0.12)';
-      context.fillRect(0, 0, window.innerWidth, window.innerHeight);
-      context.fillStyle = '#c6ff00';
-      context.font = `600 ${fontSize}px monospace`;
-
-      drops.forEach((drop, index) => {
-        const character =
-          MATRIX_CHARACTERS[Math.floor(Math.random() * MATRIX_CHARACTERS.length)];
-        context.fillText(character, index * fontSize, drop * fontSize);
-
-        if (drop * fontSize > window.innerHeight && Math.random() > 0.975) {
-          drops[index] = 0;
-        } else {
-          drops[index] += 1;
-        }
-      });
-    };
-
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas, { passive: true });
-    animationFrame = window.requestAnimationFrame(drawFrame);
-
-    return () => {
-      window.cancelAnimationFrame(animationFrame);
-      window.removeEventListener('resize', resizeCanvas);
-      context.clearRect(0, 0, canvas.width, canvas.height);
-    };
-  }, [enabled]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className={`matrix-background${enabled ? ' is-enabled' : ''}`}
-      aria-hidden="true"
-    />
-  );
 }
 
 function moveNavIndicator(nav, link) {
@@ -349,7 +276,9 @@ function getNavIndicatorTarget(
 
 function App() {
   const [copyState, setCopyState] = useState('idle');
-  const [matrixEnabled, setMatrixEnabled] = useState(getInitialMatrixPreference);
+  const [pixelLiquidEnabled, setPixelLiquidEnabled] = useState(
+    getInitialPixelLiquidPreference
+  );
   const [isNavScrolled, setIsNavScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
   const copyResetTimer = useRef(null);
@@ -486,12 +415,15 @@ function App() {
     copyResetTimer.current = window.setTimeout(() => setCopyState('idle'), 2000);
   };
 
-  const toggleMatrixBackground = () => {
-    setMatrixEnabled((currentValue) => {
+  const togglePixelLiquidBackground = () => {
+    setPixelLiquidEnabled((currentValue) => {
       const nextValue = !currentValue;
 
       try {
-        window.localStorage.setItem(MATRIX_PREFERENCE_KEY, String(nextValue));
+        window.localStorage.setItem(
+          PIXEL_LIQUID_PREFERENCE_KEY,
+          String(nextValue)
+        );
       } catch {
         // The toggle still works for the current page when storage is unavailable.
       }
@@ -508,22 +440,22 @@ function App() {
         '--cursor-hand': `url("${process.env.PUBLIC_URL}/hand.png") 4 4, pointer`,
       }}
     >
-      <MatrixBackground enabled={matrixEnabled} />
+      <PixelLiquidBackground enabled={pixelLiquidEnabled} />
       <ViewSidebar />
       <button
         className="matrix-toggle"
         type="button"
         role="switch"
-        onClick={toggleMatrixBackground}
-        aria-checked={matrixEnabled}
-        aria-label="Matrix background animation"
+        onClick={togglePixelLiquidBackground}
+        aria-checked={pixelLiquidEnabled}
+        aria-label="Pixel liquid background animation"
       >
         <span className="matrix-switch-track" aria-hidden="true">
           <span className="matrix-switch-thumb" />
         </span>
         <span className="matrix-toggle-label" aria-hidden="true">
-          <span>Matrix rain</span>
-          <span>{matrixEnabled ? 'On' : 'Off'}</span>
+          <span>Pixel liquid</span>
+          <span>{pixelLiquidEnabled ? 'On' : 'Off'}</span>
         </span>
       </button>
 

@@ -1,5 +1,5 @@
 :root {
-  --ink: #0a0a0d;
+  --ink: #0a0a0f;
   --ink-soft: #121217;
   --paper: #f4f1ea;
   --paper-muted: #b7b4ae;
@@ -47,19 +47,20 @@ a {
   background-size: auto, 72px 72px;
 }
 
-.matrix-background {
+.pixel-liquid-background {
   position: fixed;
   z-index: -1;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+  top: 0;
+  left: 0;
   opacity: 0;
   pointer-events: none;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
   transition: opacity 300ms ease;
 }
 
-.matrix-background.is-enabled {
-  opacity: 0.14;
+.pixel-liquid-background.is-enabled {
+  opacity: 0.36;
 }
 
 .matrix-toggle {
