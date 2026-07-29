@@ -315,11 +315,48 @@ function MatrixBackground({ enabled }) {
   );
 }
 
+function moveNavIndicator(nav, link) {
+  if (!nav || !link) return;
+
+  const navRect = nav.getBoundingClientRect();
+  const linkRect = link.getBoundingClientRect();
+  nav.style.setProperty('--indicator-x', `${linkRect.left - navRect.left}px`);
+  nav.style.setProperty('--indicator-width', `${linkRect.width}px`);
+}
+
+function getNavIndicatorTarget(
+  nav,
+  activeSection,
+  hoveredLink,
+  focusedLink,
+  interactionType
+) {
+  const preferredLink =
+    interactionType === 'hover'
+      ? hoveredLink
+      : interactionType === 'focus'
+        ? focusedLink
+        : null;
+
+  return (
+    preferredLink ??
+    hoveredLink ??
+    focusedLink ??
+    nav?.querySelector(`[data-section="${activeSection}"]`)
+  );
+}
+
 function App() {
   const [copyState, setCopyState] = useState('idle');
   const [matrixEnabled, setMatrixEnabled] = useState(getInitialMatrixPreference);
+  const [isNavScrolled, setIsNavScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('about');
   const copyResetTimer = useRef(null);
   const isMounted = useRef(true);
+  const navRef = useRef(null);
+  const navHoverRef = useRef(null);
+  const navFocusRef = useRef(null);
+  const navInteractionTypeRef = useRef(null);
 
   useEffect(() => {
     const mascot = new WebShimeji({
@@ -352,6 +389,75 @@ function App() {
     elements.forEach((element) => observer.observe(element));
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    const sectionIds = ['about', 'experience', 'projects'];
+    let navigationFrame = null;
+
+    const updateActiveSection = () => {
+      if (window.scrollY <= 1) {
+        setActiveSection('about');
+        return;
+      }
+
+      const activationLine = window.innerHeight * 0.38;
+      let currentSection = 'about';
+
+      sectionIds.forEach((sectionId) => {
+        const section = document.getElementById(sectionId);
+        if (section?.getBoundingClientRect().top <= activationLine) {
+          currentSection = sectionId;
+        }
+      });
+
+      setActiveSection(currentSection);
+    };
+
+    const handleScroll = () => {
+      setIsNavScrolled(window.scrollY > 0);
+
+      if (navigationFrame === null) {
+        navigationFrame = window.requestAnimationFrame(() => {
+          navigationFrame = null;
+          updateActiveSection();
+        });
+      }
+    };
+
+    setIsNavScrolled(window.scrollY > 0);
+    updateActiveSection();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (navigationFrame !== null) {
+        window.cancelAnimationFrame(navigationFrame);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return undefined;
+
+    const moveToCurrentTarget = () => {
+      moveNavIndicator(
+        nav,
+        getNavIndicatorTarget(
+          nav,
+          activeSection,
+          navHoverRef.current,
+          navFocusRef.current,
+          navInteractionTypeRef.current
+        )
+      );
+    };
+
+    moveToCurrentTarget();
+    window.addEventListener('resize', moveToCurrentTarget, { passive: true });
+
+    return () => window.removeEventListener('resize', moveToCurrentTarget);
+  }, [activeSection]);
 
   useEffect(() => {
     isMounted.current = true;
@@ -419,14 +525,78 @@ function App() {
         </span>
       </button>
 
-      <header className="topbar">
+      <header className={`topbar${isNavScrolled ? ' is-scrolled' : ''}`}>
         <a className="brand" href="#top" aria-label="Surachet Panto — home">
           SP<span>.</span>
         </a>
-        <nav aria-label="Main navigation">
-          <a href="#about">About</a>
-          <a href="#experience">Experience</a>
-          <a href="#projects">Projects</a>
+        <nav
+          ref={navRef}
+          aria-label="Main navigation"
+          onMouseLeave={() => {
+            navHoverRef.current = null;
+            if (navInteractionTypeRef.current === 'hover') {
+              navInteractionTypeRef.current = navFocusRef.current
+                ? 'focus'
+                : null;
+            }
+            moveNavIndicator(
+              navRef.current,
+              getNavIndicatorTarget(
+                navRef.current,
+                activeSection,
+                navHoverRef.current,
+                navFocusRef.current,
+                navInteractionTypeRef.current
+              )
+            );
+          }}
+          onBlur={(event) => {
+            if (event.currentTarget.contains(event.relatedTarget)) return;
+
+            navFocusRef.current = null;
+            if (navInteractionTypeRef.current === 'focus') {
+              navInteractionTypeRef.current = navHoverRef.current
+                ? 'hover'
+                : null;
+            }
+            moveNavIndicator(
+              navRef.current,
+              getNavIndicatorTarget(
+                navRef.current,
+                activeSection,
+                navHoverRef.current,
+                navFocusRef.current,
+                navInteractionTypeRef.current
+              )
+            );
+          }}
+        >
+          {['about', 'experience', 'projects'].map((sectionId) => (
+            <a
+              className={`nav-link${
+                activeSection === sectionId ? ' is-active' : ''
+              }`}
+              data-section={sectionId}
+              href={`#${sectionId}`}
+              key={sectionId}
+              aria-current={
+                activeSection === sectionId ? 'location' : undefined
+              }
+              onMouseEnter={(event) => {
+                navHoverRef.current = event.currentTarget;
+                navInteractionTypeRef.current = 'hover';
+                moveNavIndicator(navRef.current, event.currentTarget);
+              }}
+              onFocus={(event) => {
+                navFocusRef.current = event.currentTarget;
+                navInteractionTypeRef.current = 'focus';
+                moveNavIndicator(navRef.current, event.currentTarget);
+              }}
+            >
+              {sectionId}
+            </a>
+          ))}
+          <span className="nav-indicator" aria-hidden="true" />
         </nav>
         <a className="topbar-cta" href="mailto:surachetpan@hotmail.com">
           Let&apos;s talk <ArrowIcon />

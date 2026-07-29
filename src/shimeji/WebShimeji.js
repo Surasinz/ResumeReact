@@ -268,7 +268,7 @@ export default class WebShimeji {
     if (!this.element) return;
 
     this.element.style.transform =
-      `translate3d(${Math.round(this.position.x)}px, ${Math.round(this.position.y)}px, 0)`;
+      `translate3d(${this.position.x.toFixed(2)}px, ${this.position.y.toFixed(2)}px, 0)`;
   }
 
   chooseNextAction() {

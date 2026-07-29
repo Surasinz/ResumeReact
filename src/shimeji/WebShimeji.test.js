@@ -39,6 +39,12 @@ test('injects the mascot and selects sprite frames from the configured atlas', (
   mascot.setState(SHIMEJI_STATES.Working);
   expect(mascot.element.style.backgroundPosition).toBe('0px -560px');
 
+  mascot.position = { x: 12.345, y: 67.891 };
+  mascot.renderPosition();
+  expect(mascot.element.style.transform).toBe(
+    'translate3d(12.35px, 67.89px, 0)'
+  );
+
   mascot.destroy();
   expect(document.querySelector('[data-web-shimeji]')).not.toBeInTheDocument();
   expect(window.cancelAnimationFrame).toHaveBeenCalledWith(17);

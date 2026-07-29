@@ -240,3 +240,137 @@ test('keeps section navigation available at a narrow viewport', () => {
     '#projects'
   );
 });
+
+test('adds glass styling after scroll and moves the indicator between nav links', () => {
+  render(<App />);
+  const topbar = document.querySelector('.topbar');
+  const navigation = screen.getByRole('navigation', { name: /Main navigation/i });
+  const aboutLink = within(navigation).getByRole('link', { name: /About/i });
+  const experienceLink = within(navigation).getByRole('link', {
+    name: /Experience/i,
+  });
+  const projectsLink = within(navigation).getByRole('link', { name: /Projects/i });
+
+  expect(topbar).not.toHaveClass('is-scrolled');
+
+  jest.spyOn(navigation, 'getBoundingClientRect').mockReturnValue({
+    bottom: 60,
+    height: 30,
+    left: 100,
+    right: 500,
+    top: 30,
+    width: 400,
+    x: 100,
+    y: 30,
+    toJSON: () => {},
+  });
+  const aboutLinkRect = jest
+    .spyOn(aboutLink, 'getBoundingClientRect')
+    .mockReturnValue({
+      bottom: 55,
+      height: 20,
+      left: 100,
+      right: 160,
+      top: 35,
+      width: 60,
+      x: 100,
+      y: 35,
+      toJSON: () => {},
+    });
+  jest.spyOn(experienceLink, 'getBoundingClientRect').mockReturnValue({
+    bottom: 55,
+    height: 20,
+    left: 220,
+    right: 320,
+    top: 35,
+    width: 100,
+    x: 220,
+    y: 35,
+    toJSON: () => {},
+  });
+  jest.spyOn(projectsLink, 'getBoundingClientRect').mockReturnValue({
+    bottom: 55,
+    height: 20,
+    left: 360,
+    right: 440,
+    top: 35,
+    width: 80,
+    x: 360,
+    y: 35,
+    toJSON: () => {},
+  });
+
+  jest.spyOn(document.getElementById('about'), 'getBoundingClientRect').mockReturnValue({
+    top: -400,
+  });
+  jest
+    .spyOn(document.getElementById('experience'), 'getBoundingClientRect')
+    .mockReturnValue({ top: 40 });
+  const projectsSectionRect = jest
+    .spyOn(document.getElementById('projects'), 'getBoundingClientRect')
+    .mockReturnValue({ top: 900 });
+
+  Object.defineProperty(window, 'scrollY', {
+    configurable: true,
+    value: 200,
+  });
+  window.requestAnimationFrame.mockImplementationOnce((callback) => {
+    callback();
+    return null;
+  });
+  fireEvent.scroll(window);
+
+  expect(topbar).toHaveClass('is-scrolled');
+  expect(experienceLink).toHaveClass('is-active');
+  expect(experienceLink).toHaveAttribute('aria-current', 'location');
+
+  fireEvent.mouseEnter(aboutLink);
+  expect(navigation.style.getPropertyValue('--indicator-x')).toBe('0px');
+  expect(navigation.style.getPropertyValue('--indicator-width')).toBe('60px');
+
+  projectsSectionRect.mockReturnValue({ top: 40 });
+  window.requestAnimationFrame.mockImplementationOnce((callback) => {
+    callback();
+    return null;
+  });
+  fireEvent.scroll(window);
+  expect(projectsLink).toHaveClass('is-active');
+  expect(projectsLink).toHaveAttribute('aria-current', 'location');
+  expect(experienceLink).not.toHaveAttribute('aria-current');
+  expect(navigation.style.getPropertyValue('--indicator-x')).toBe('0px');
+  expect(navigation.style.getPropertyValue('--indicator-width')).toBe('60px');
+
+  fireEvent.mouseLeave(navigation);
+  expect(navigation.style.getPropertyValue('--indicator-x')).toBe('260px');
+  expect(navigation.style.getPropertyValue('--indicator-width')).toBe('80px');
+
+  fireEvent.focus(experienceLink);
+  expect(navigation.style.getPropertyValue('--indicator-x')).toBe('120px');
+
+  fireEvent.mouseEnter(aboutLink);
+  aboutLinkRect.mockReturnValue({
+    bottom: 55,
+    height: 20,
+    left: 110,
+    right: 180,
+    top: 35,
+    width: 70,
+    x: 110,
+    y: 35,
+    toJSON: () => {},
+  });
+  fireEvent(window, new Event('resize'));
+  expect(navigation.style.getPropertyValue('--indicator-x')).toBe('10px');
+  expect(navigation.style.getPropertyValue('--indicator-width')).toBe('70px');
+
+  fireEvent.mouseLeave(navigation);
+  expect(navigation.style.getPropertyValue('--indicator-x')).toBe('120px');
+
+  fireEvent.mouseEnter(aboutLink);
+  fireEvent.blur(experienceLink, { relatedTarget: document.body });
+  expect(navigation.style.getPropertyValue('--indicator-x')).toBe('10px');
+
+  fireEvent.mouseLeave(navigation);
+  expect(navigation.style.getPropertyValue('--indicator-x')).toBe('260px');
+  expect(aboutLink).not.toHaveClass('is-active');
+});
