@@ -170,19 +170,16 @@ test('defaults both background effects to off when reduced motion is preferred',
   ).toBeNull();
 });
 
-test('renders Matrix and exact 3px Pixel Liquid canvases and releases resources', () => {
+test('renders Matrix and the WebGL Pixel Liquid layer and releases resources', () => {
   const removeEventListener = jest.spyOn(window, 'removeEventListener');
   const { container, unmount } = render(<App />);
-  const canvas = container.querySelector('.pixel-liquid-background');
+  const liquid = container.querySelector('.pixel-liquid-background');
   const matrixCanvas = container.querySelector('.matrix-background');
 
   expect(matrixCanvas).toBeInTheDocument();
-  expect(canvas.width).toBeGreaterThan(0);
-  expect(canvas.height).toBeGreaterThan(0);
-  expect(canvas.width % 3).toBe(0);
-  expect(canvas.height % 3).toBe(0);
-  expect(canvas).toHaveAttribute('data-pixel-size', '3');
-  expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledTimes(3);
+  expect(liquid).toHaveClass('is-enabled');
+  expect(liquid).toHaveAttribute('data-pixel-size', '18');
+  expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledTimes(1);
 
   unmount();
   expect(window.cancelAnimationFrame).toHaveBeenCalledWith(1);
