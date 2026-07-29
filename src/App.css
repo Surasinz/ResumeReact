@@ -47,9 +47,9 @@ a {
   background-size: auto, 72px 72px;
 }
 
+.matrix-background,
 .pixel-liquid-background {
   position: fixed;
-  z-index: -1;
   top: 0;
   left: 0;
   opacity: 0;
@@ -59,8 +59,20 @@ a {
   transition: opacity 300ms ease;
 }
 
+.matrix-background {
+  z-index: -2;
+}
+
+.matrix-background.is-enabled {
+  opacity: 0.13;
+}
+
+.pixel-liquid-background {
+  z-index: -1;
+}
+
 .pixel-liquid-background.is-enabled {
-  opacity: 0.36;
+  opacity: 0.48;
 }
 
 .matrix-toggle {

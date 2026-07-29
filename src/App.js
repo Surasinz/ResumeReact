@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
+import MatrixRainBackground from './MatrixRainBackground';
 import PixelLiquidBackground from './PixelLiquidBackground';
 import WebShimeji from './shimeji/WebShimeji';
 import ViewSidebar from './ViewSidebar';
 
 const EMAIL = 'surachetpan@hotmail.com';
+const BACKGROUND_EFFECTS_PREFERENCE_KEY = 'surachet-background-effects-animation';
 const PIXEL_LIQUID_PREFERENCE_KEY = 'surachet-pixel-liquid-animation';
 const LEGACY_MATRIX_PREFERENCE_KEY = 'surachet-matrix-animation';
 
@@ -230,9 +232,10 @@ function AvatarSpotlight() {
   );
 }
 
-function getInitialPixelLiquidPreference() {
+function getInitialBackgroundEffectsPreference() {
   try {
     const savedPreference =
+      window.localStorage.getItem(BACKGROUND_EFFECTS_PREFERENCE_KEY) ??
       window.localStorage.getItem(PIXEL_LIQUID_PREFERENCE_KEY) ??
       window.localStorage.getItem(LEGACY_MATRIX_PREFERENCE_KEY);
     if (savedPreference !== null) return savedPreference === 'true';
@@ -276,8 +279,8 @@ function getNavIndicatorTarget(
 
 function App() {
   const [copyState, setCopyState] = useState('idle');
-  const [pixelLiquidEnabled, setPixelLiquidEnabled] = useState(
-    getInitialPixelLiquidPreference
+  const [backgroundEffectsEnabled, setBackgroundEffectsEnabled] = useState(
+    getInitialBackgroundEffectsPreference
   );
   const [isNavScrolled, setIsNavScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
@@ -415,13 +418,13 @@ function App() {
     copyResetTimer.current = window.setTimeout(() => setCopyState('idle'), 2000);
   };
 
-  const togglePixelLiquidBackground = () => {
-    setPixelLiquidEnabled((currentValue) => {
+  const toggleBackgroundEffects = () => {
+    setBackgroundEffectsEnabled((currentValue) => {
       const nextValue = !currentValue;
 
       try {
         window.localStorage.setItem(
-          PIXEL_LIQUID_PREFERENCE_KEY,
+          BACKGROUND_EFFECTS_PREFERENCE_KEY,
           String(nextValue)
         );
       } catch {
@@ -440,22 +443,23 @@ function App() {
         '--cursor-hand': `url("${process.env.PUBLIC_URL}/hand.png") 4 4, pointer`,
       }}
     >
-      <PixelLiquidBackground enabled={pixelLiquidEnabled} />
+      <MatrixRainBackground enabled={backgroundEffectsEnabled} />
+      <PixelLiquidBackground enabled={backgroundEffectsEnabled} />
       <ViewSidebar />
       <button
         className="matrix-toggle"
         type="button"
         role="switch"
-        onClick={togglePixelLiquidBackground}
-        aria-checked={pixelLiquidEnabled}
-        aria-label="Pixel liquid background animation"
+        onClick={toggleBackgroundEffects}
+        aria-checked={backgroundEffectsEnabled}
+        aria-label="Background animations"
       >
         <span className="matrix-switch-track" aria-hidden="true">
           <span className="matrix-switch-thumb" />
         </span>
         <span className="matrix-toggle-label" aria-hidden="true">
-          <span>Pixel liquid</span>
-          <span>{pixelLiquidEnabled ? 'On' : 'Off'}</span>
+          <span>Background FX</span>
+          <span>{backgroundEffectsEnabled ? 'On' : 'Off'}</span>
         </span>
       </button>
 

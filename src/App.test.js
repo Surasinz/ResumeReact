@@ -131,29 +131,29 @@ test('lets keyboard and touch users pause and resume each skills marquee', () =>
   expect(marquee.querySelector('.marquee-track')).not.toHaveClass('is-paused');
 });
 
-test('toggles the Pixel Liquid background and restores the saved preference', () => {
+test('toggles both background effects and restores the saved preference', () => {
   const { unmount } = render(<App />);
   const disableButton = screen.getByRole('switch', {
-    name: /Pixel liquid background animation/i,
+    name: /Background animations/i,
   });
 
   expect(disableButton).toHaveAttribute('aria-checked', 'true');
   fireEvent.click(disableButton);
   expect(
-    window.localStorage.getItem('surachet-pixel-liquid-animation')
+    window.localStorage.getItem('surachet-background-effects-animation')
   ).toBe('false');
   expect(
-    screen.getByRole('switch', { name: /Pixel liquid background animation/i })
+    screen.getByRole('switch', { name: /Background animations/i })
   ).toHaveAttribute('aria-checked', 'false');
 
   unmount();
   render(<App />);
   expect(
-    screen.getByRole('switch', { name: /Pixel liquid background animation/i })
+    screen.getByRole('switch', { name: /Background animations/i })
   ).toHaveAttribute('aria-checked', 'false');
 });
 
-test('defaults the Pixel Liquid background to off when reduced motion is preferred', () => {
+test('defaults both background effects to off when reduced motion is preferred', () => {
   window.matchMedia.mockReturnValue({
     matches: true,
     addEventListener: jest.fn(),
@@ -163,24 +163,26 @@ test('defaults the Pixel Liquid background to off when reduced motion is preferr
   render(<App />);
 
   expect(
-    screen.getByRole('switch', { name: /Pixel liquid background animation/i })
+    screen.getByRole('switch', { name: /Background animations/i })
   ).toHaveAttribute('aria-checked', 'false');
   expect(
-    window.localStorage.getItem('surachet-pixel-liquid-animation')
+    window.localStorage.getItem('surachet-background-effects-animation')
   ).toBeNull();
 });
 
-test('renders the Pixel Liquid canvas in exact 3px blocks and releases resources', () => {
+test('renders Matrix and exact 3px Pixel Liquid canvases and releases resources', () => {
   const removeEventListener = jest.spyOn(window, 'removeEventListener');
   const { container, unmount } = render(<App />);
   const canvas = container.querySelector('.pixel-liquid-background');
+  const matrixCanvas = container.querySelector('.matrix-background');
 
+  expect(matrixCanvas).toBeInTheDocument();
   expect(canvas.width).toBeGreaterThan(0);
   expect(canvas.height).toBeGreaterThan(0);
   expect(canvas.width % 3).toBe(0);
   expect(canvas.height % 3).toBe(0);
   expect(canvas).toHaveAttribute('data-pixel-size', '3');
-  expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledTimes(2);
+  expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledTimes(3);
 
   unmount();
   expect(window.cancelAnimationFrame).toHaveBeenCalledWith(1);
