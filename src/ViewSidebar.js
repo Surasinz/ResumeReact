@@ -2,6 +2,12 @@ import './ViewSidebar.css';
 
 const sidebarLinks = [
   {
+    id: 'review',
+    href: '/review',
+    code: 'REV',
+    label: 'Review This Website',
+  },
+  {
     id: 'not-found',
     href: '/404',
     code: '404',

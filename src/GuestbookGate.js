@@ -1,22 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import './GuestbookGate.css';
+import ViewSidebar from './ViewSidebar';
 
 // Replace only "mdaqjdba" when switching to another Formspree form ID.
 export const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdaqjdba';
 
-export default function GuestbookGate({ onEnter }) {
+export default function GuestbookGate() {
   const [visitorType, setVisitorType] = useState('visitor');
   const [submitState, setSubmitState] = useState('idle');
   const isMounted = useRef(true);
   const submissionInFlight = useRef(false);
   const requestController = useRef(null);
-  const accessGranted = useRef(false);
 
   useEffect(() => {
     const previousTitle = document.title;
     isMounted.current = true;
-    document.title = 'Guestbook Gateway — Surachet Panto';
+    document.title = 'Review Terminal — Surachet Panto';
 
     return () => {
       isMounted.current = false;
@@ -24,13 +24,6 @@ export default function GuestbookGate({ onEnter }) {
       document.title = previousTitle;
     };
   }, []);
-
-  const grantAccessOnce = () => {
-    if (accessGranted.current) return;
-
-    accessGranted.current = true;
-    onEnter();
-  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -55,10 +48,9 @@ export default function GuestbookGate({ onEnter }) {
         throw new Error('Formspree rejected the transmission.');
       }
 
-      if (!isMounted.current || accessGranted.current) return;
+      if (!isMounted.current) return;
 
       setSubmitState('success');
-      grantAccessOnce();
     } catch (error) {
       if (isMounted.current && error.name !== 'AbortError') {
         setSubmitState('error');
@@ -71,20 +63,15 @@ export default function GuestbookGate({ onEnter }) {
     }
   };
 
-  const handleSkip = () => {
-    requestController.current?.abort();
-    submissionInFlight.current = false;
-    grantAccessOnce();
-  };
-
   return (
     <main className="guestbook-gate">
       <div className="guestbook-scanlines" aria-hidden="true" />
+      <ViewSidebar currentPage="review" />
       <header className="guestbook-header">
-        <a className="brand" href="/" aria-label="Surachet Panto — guestbook">
+        <a className="brand" href="/" aria-label="Surachet Panto — portfolio">
           SP<span>.</span>
         </a>
-        <span>ACCESS_NODE // GUESTBOOK</span>
+        <span>FEEDBACK_NODE // REVIEW_TERMINAL</span>
       </header>
 
       <section className="guestbook-shell" aria-labelledby="guestbook-title">
@@ -93,14 +80,14 @@ export default function GuestbookGate({ onEnter }) {
             <span>NODE_01</span>
             <i />
           </div>
-          <p>Enterprise Builder // Visitor Gateway</p>
+          <p>Enterprise Builder // Review Terminal</p>
           <h1 id="guestbook-title">
             Leave a signal
-            <span>before entering.</span>
+            <span>after exploring.</span>
           </h1>
           <p className="guestbook-description">
-            Share one useful observation about this website. Your feedback is
-            transmitted securely through Formspree and helps improve the next build.
+            Thanks for exploring the portfolio. Share one useful observation
+            about the experience to help improve the next build.
           </p>
           <div className="guestbook-meta" aria-hidden="true">
             <span>ENCRYPTION: ACTIVE</span>
@@ -215,15 +202,9 @@ export default function GuestbookGate({ onEnter }) {
                     : '[ TRANSMIT DATA ]'}
                 </span>
               </button>
-              <button
-                className="guestbook-skip"
-                type="button"
-                onClick={handleSkip}
-              >
-                {submitState === 'sending'
-                  ? 'Cancel transmission and continue →'
-                  : 'Continue without transmitting →'}
-              </button>
+              <a className="guestbook-skip" href="/">
+                Return to portfolio →
+              </a>
             </div>
 
             <p
@@ -232,16 +213,17 @@ export default function GuestbookGate({ onEnter }) {
               aria-live="polite"
             >
               {submitState === 'sending' && 'Encrypting feedback payload...'}
-              {submitState === 'success' && 'Transmission received. Access granted.'}
+              {submitState === 'success' &&
+                'Transmission received. Thank you for the signal. ✓'}
               {submitState === 'error' &&
-                'Transmission failed. Check your connection or continue without sending.'}
+                'Transmission failed. Check your connection and try again.'}
             </p>
           </form>
         </div>
       </section>
 
       <footer className="guestbook-footer" aria-hidden="true">
-        <span>SURACHET_PANTO // PORTFOLIO_GATEWAY</span>
+        <span>SURACHET_PANTO // REVIEW_TERMINAL</span>
         <span>NONTHABURI // TH</span>
       </footer>
     </main>

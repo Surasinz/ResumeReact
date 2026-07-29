@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import SiteRouter, { GUESTBOOK_ACCESS_KEY } from './SiteRouter';
+import { render, screen } from '@testing-library/react';
+import SiteRouter from './SiteRouter';
 
 jest.mock('./App', () => () => <div>PORTFOLIO_PAGE</div>);
 jest.mock('./CyberPages', () => ({
@@ -7,14 +7,9 @@ jest.mock('./CyberPages', () => ({
   InterviewPage: () => <div>INTERVIEW_PAGE</div>,
 }));
 jest.mock('./NotFoundPage', () => () => <div>NOT_FOUND_PAGE</div>);
-jest.mock('./GuestbookGate', () => ({ onEnter }) => (
-  <button type="button" onClick={onEnter}>
-    GUESTBOOK_GATE
-  </button>
-));
+jest.mock('./GuestbookGate', () => () => <div>REVIEW_PAGE</div>);
 
 beforeEach(() => {
-  window.sessionStorage.clear();
   window.history.replaceState({}, '', '/');
 });
 
@@ -22,37 +17,24 @@ afterEach(() => {
   window.history.replaceState({}, '', '/');
 });
 
-test('shows the gate before a direct route and remembers access for the session', () => {
+test('renders direct portfolio routes without a feedback gate', () => {
   window.history.replaceState({}, '', '/impact');
   render(<SiteRouter />);
 
-  expect(screen.getByRole('button', { name: 'GUESTBOOK_GATE' })).toBeInTheDocument();
-  expect(screen.queryByText('IMPACT_PAGE')).not.toBeInTheDocument();
-
-  fireEvent.click(screen.getByRole('button', { name: 'GUESTBOOK_GATE' }));
-
   expect(screen.getByText('IMPACT_PAGE')).toBeInTheDocument();
-  expect(window.sessionStorage.getItem(GUESTBOOK_ACCESS_KEY)).toBe('granted');
+  expect(screen.queryByText('REVIEW_PAGE')).not.toBeInTheDocument();
 });
 
-test('routes returning session visitors without showing the gate again', () => {
-  window.sessionStorage.setItem(GUESTBOOK_ACCESS_KEY, 'granted');
-  window.history.replaceState({}, '', '/interview-me');
-
+test('routes review to the standalone feedback terminal', () => {
+  window.history.replaceState({}, '', '/review');
   render(<SiteRouter />);
 
-  expect(screen.getByText('INTERVIEW_PAGE')).toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: 'GUESTBOOK_GATE' })).not.toBeInTheDocument();
+  expect(screen.getByText('REVIEW_PAGE')).toBeInTheDocument();
 });
 
-test('keeps unknown paths behind the same gate before rendering the 404 page', () => {
+test('renders unknown paths as the 404 page immediately', () => {
   window.history.replaceState({}, '', '/unknown-system-route');
-  const { rerender } = render(<SiteRouter />);
-
-  expect(screen.getByRole('button', { name: 'GUESTBOOK_GATE' })).toBeInTheDocument();
-
-  window.sessionStorage.setItem(GUESTBOOK_ACCESS_KEY, 'granted');
-  rerender(<SiteRouter key="with-access" />);
+  render(<SiteRouter />);
 
   expect(screen.getByText('NOT_FOUND_PAGE')).toBeInTheDocument();
 });

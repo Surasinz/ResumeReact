@@ -9,6 +9,9 @@ test('links to every portfolio view and exposes the current page', () => {
   const navigation = within(sidebar).getByRole('navigation');
 
   expect(
+    within(navigation).getByRole('link', { name: 'Review This Website' })
+  ).toHaveAttribute('href', '/review');
+  expect(
     within(navigation).getByRole('link', { name: 'Page Payload Not Found' })
   ).toHaveAttribute('href', '/404');
   expect(
