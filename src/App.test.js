@@ -51,6 +51,12 @@ test('renders the portfolio headline, navigation, and contact details', () => {
     'href',
     'https://github.com/Surasinz'
   );
+  expect(
+    screen.getByRole('link', { name: /Impact Dashboard/i })
+  ).toHaveAttribute('href', '/impact');
+  expect(
+    screen.getByRole('link', { name: /Interview Terminal/i })
+  ).toHaveAttribute('href', '/interview-me');
 });
 
 test('copies the contact email and shows confirmation', async () => {

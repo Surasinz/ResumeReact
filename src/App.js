@@ -755,6 +755,20 @@ function App() {
               </div>
             </div>
           </article>
+          <nav className="portfolio-portals" aria-label="Explore portfolio views" data-reveal>
+            <a href="/impact">
+              <span>01 // Data view</span>
+              <strong>Impact Dashboard</strong>
+              <small>Measured engineering outcomes</small>
+              <ArrowIcon />
+            </a>
+            <a href="/interview-me">
+              <span>02 // Interactive view</span>
+              <strong>Interview Terminal</strong>
+              <small>Ask about systems, automation, and delivery</small>
+              <ArrowIcon />
+            </a>
+          </nav>
         </section>
 
         <section className="contact section" id="contact">
