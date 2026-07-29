@@ -195,8 +195,8 @@ function AvatarSpotlight() {
       onMouseLeave={hideSpotlight}
     >
       <img
-        className="avatar-image avatar-image-formal"
-        src={`${process.env.PUBLIC_URL}/avatar-formal.webp`}
+        className="avatar-image avatar-image-default"
+        src={`${process.env.PUBLIC_URL}/surachet-avatar.webp`}
         alt="3D streetwear avatar of Surachet Panto"
         width="928"
         height="960"
@@ -205,8 +205,8 @@ function AvatarSpotlight() {
         draggable="false"
       />
       <img
-        className="avatar-image avatar-image-casual"
-        src={`${process.env.PUBLIC_URL}/surachet-avatar.webp`}
+        className="avatar-image avatar-image-reveal"
+        src={`${process.env.PUBLIC_URL}/avatar-formal.webp`}
         alt=""
         aria-hidden="true"
         width="928"
@@ -215,6 +215,14 @@ function AvatarSpotlight() {
         decoding="async"
         draggable="false"
       />
+      <div className="floating-label floating-label-code">
+        <span>&lt;/&gt;</span>
+        Enterprise builder
+      </div>
+      <div className="floating-label floating-label-location">
+        <span>●</span>
+        Nonthaburi, TH
+      </div>
     </div>
   );
 }
@@ -465,14 +473,6 @@ function App() {
             <div className="visual-orbit orbit-one" />
             <div className="visual-orbit orbit-two" />
             <AvatarSpotlight />
-            <div className="floating-label floating-label-code">
-              <span>&lt;/&gt;</span>
-              Enterprise builder
-            </div>
-            <div className="floating-label floating-label-location">
-              <span>●</span>
-              Nonthaburi, TH
-            </div>
             <p className="visual-caption">Software Engineer · 2026</p>
           </div>
 

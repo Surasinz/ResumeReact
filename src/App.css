@@ -152,14 +152,14 @@ a {
   position: fixed;
   z-index: 50;
   top: 0;
-  left: 50%;
+  left: 0;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  width: min(calc(100% - 48px), var(--max-width));
+  width: 100%;
   height: 74px;
+  padding-inline: 24px;
   border-bottom: 1px solid rgba(255,255,255,0.12);
-  transform: translateX(-50%);
   background: rgba(10, 10, 13, 0.72);
   backdrop-filter: blur(18px);
 }
@@ -256,14 +256,18 @@ footer {
   margin: 0;
   font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   font-weight: 400;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.045em;
   text-transform: uppercase;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 1px rgba(244, 241, 234, 0.16);
 }
 
 .hero h1 {
   max-width: 760px;
   font-size: clamp(4.25rem, 8vw, 8rem);
-  line-height: 0.83;
+  line-height: 0.86;
 }
 
 .hero h1 > span {
@@ -277,6 +281,7 @@ footer {
 .outline-text {
   color: transparent;
   -webkit-text-stroke: 1.5px rgba(244, 241, 234, 0.88);
+  text-shadow: none;
 }
 
 .hero-subtitle {
@@ -419,11 +424,11 @@ footer {
   user-select: none;
 }
 
-.avatar-image-formal {
+.avatar-image-default {
   z-index: 1;
 }
 
-.avatar-image-casual {
+.avatar-image-reveal {
   z-index: 2;
   opacity: 0;
   -webkit-mask-image: radial-gradient(
@@ -444,7 +449,7 @@ footer {
   will-change: opacity, mask-image;
 }
 
-.avatar-frame.is-spotlight-active .avatar-image-casual {
+.avatar-frame.is-spotlight-active .avatar-image-reveal {
   opacity: 1;
 }
 
@@ -482,6 +487,7 @@ footer {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  pointer-events: none;
 }
 
 .floating-label span {
@@ -489,13 +495,13 @@ footer {
 }
 
 .floating-label-code {
-  top: 17%;
-  right: -3%;
+  right: 5%;
+  bottom: 26%;
 }
 
 .floating-label-location {
-  bottom: 19%;
-  left: -5%;
+  right: 5%;
+  bottom: 17%;
 }
 
 .visual-caption {
@@ -1280,7 +1286,6 @@ footer p {
     background-size: auto, 44px 44px;
   }
 
-  .topbar,
   .hero,
   .section,
   footer {
@@ -1288,7 +1293,9 @@ footer p {
   }
 
   .topbar {
+    width: 100%;
     height: 64px;
+    padding-inline: 16px;
   }
 
   .matrix-toggle {
@@ -1348,6 +1355,14 @@ footer p {
     width: min(88vw, 390px);
   }
 
+  .floating-label-code {
+    bottom: 32%;
+  }
+
+  .floating-label-location {
+    bottom: 17%;
+  }
+
   .orbit-one {
     width: 460px;
     height: 180px;
@@ -1356,16 +1371,6 @@ footer p {
   .orbit-two {
     width: 310px;
     height: 430px;
-  }
-
-  .floating-label-code {
-    top: 9%;
-    right: 0;
-  }
-
-  .floating-label-location {
-    bottom: 8%;
-    left: 0;
   }
 
   .visual-caption {

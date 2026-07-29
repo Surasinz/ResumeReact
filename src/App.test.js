@@ -193,6 +193,13 @@ test('tilts the featured project visual toward the pointer and resets on leave',
 test('tracks the pointer position across the avatar spotlight', () => {
   render(<App />);
   const spotlight = screen.getByTestId('avatar-spotlight');
+  const defaultImage = spotlight.querySelector('.avatar-image-default');
+  const revealImage = spotlight.querySelector('.avatar-image-reveal');
+
+  expect(defaultImage).toHaveAttribute('src', '/surachet-avatar.webp');
+  expect(revealImage).toHaveAttribute('src', '/avatar-formal.webp');
+  expect(within(spotlight).getByText(/Enterprise builder/i)).toBeInTheDocument();
+  expect(within(spotlight).getByText(/Nonthaburi, TH/i)).toBeInTheDocument();
 
   jest.spyOn(spotlight, 'getBoundingClientRect').mockReturnValue({
     bottom: 500,
