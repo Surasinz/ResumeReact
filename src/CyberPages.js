@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import './CyberPages.css';
+import ViewSidebar from './ViewSidebar';
 
 const impactCategories = [
   {
@@ -222,6 +223,7 @@ export function ImpactPage() {
   return (
     <div className="cyber-page">
       <CyberHeader activePage="impact" />
+      <ViewSidebar currentPage="impact" />
       <main>
         <CyberPageIntro
           index="01"
@@ -320,6 +322,7 @@ export function InterviewPage() {
   return (
     <div className="cyber-page">
       <CyberHeader activePage="interview" />
+      <ViewSidebar currentPage="interview" />
       <main>
         <CyberPageIntro
           index="02"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import './NotFoundPage.css';
+import ViewSidebar from './ViewSidebar';
 
 const ERROR_LOG =
   '> PAGE NOT FOUND\n' +
@@ -69,6 +70,7 @@ export default function NotFoundPage() {
   return (
     <main className="error-page">
       <div className="error-scanlines" aria-hidden="true" />
+      <ViewSidebar currentPage="not-found" />
       <header className="error-header">
         <a className="brand" href="/" aria-label="Surachet Panto — home">
           SP<span>.</span>

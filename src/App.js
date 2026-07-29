@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import WebShimeji from './shimeji/WebShimeji';
+import ViewSidebar from './ViewSidebar';
 
 const EMAIL = 'surachetpan@hotmail.com';
 const MATRIX_PREFERENCE_KEY = 'surachet-matrix-animation';
@@ -508,6 +509,7 @@ function App() {
       }}
     >
       <MatrixBackground enabled={matrixEnabled} />
+      <ViewSidebar />
       <button
         className="matrix-toggle"
         type="button"

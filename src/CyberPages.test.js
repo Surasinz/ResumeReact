@@ -56,8 +56,10 @@ test('renders every impact category and exact metric content', () => {
   ).toBeInTheDocument();
   expect(screen.getByText(/Gemini API and LangChain frameworks/i)).toBeInTheDocument();
   expect(
-    screen.getByRole('link', { name: /Interactive Interview Terminal/i })
-  ).toHaveAttribute('href', '/interview-me');
+    screen
+      .getAllByRole('link', { name: /Interactive Interview Terminal/i })
+      .some((link) => link.getAttribute('href') === '/interview-me')
+  ).toBe(true);
 });
 
 test('switches terminal answers without letting the previous typewriter overlap', () => {

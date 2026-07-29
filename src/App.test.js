@@ -52,11 +52,15 @@ test('renders the portfolio headline, navigation, and contact details', () => {
     'https://github.com/Surasinz'
   );
   expect(
-    screen.getByRole('link', { name: /Impact Dashboard/i })
-  ).toHaveAttribute('href', '/impact');
+    screen
+      .getAllByRole('link', { name: /Impact Dashboard/i })
+      .some((link) => link.getAttribute('href') === '/impact')
+  ).toBe(true);
   expect(
-    screen.getByRole('link', { name: /Interview Terminal/i })
-  ).toHaveAttribute('href', '/interview-me');
+    screen
+      .getAllByRole('link', { name: /Interview Terminal/i })
+      .some((link) => link.getAttribute('href') === '/interview-me')
+  ).toBe(true);
 });
 
 test('copies the contact email and shows confirmation', async () => {
