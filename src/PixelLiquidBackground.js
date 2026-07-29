@@ -1,13 +1,15 @@
 import { useEffect, useRef } from 'react';
 
 export const PIXEL_SIZE = 3;
+export const SMOKE_SCALE = 1.5;
 
 const FRAME_INTERVAL = 1000 / 30;
 const MAX_SMOKE_PUFFS = 48;
+const SMOKE_COLOR = '57, 255, 20';
 const AMBIENT_BLOBS = [
-  { color: '0, 243, 255', radius: 0.3, speedX: 0.73, speedY: 0.51, phase: 0.2 },
-  { color: '57, 255, 20', radius: 0.25, speedX: 0.47, speedY: 0.81, phase: 2.1 },
-  { color: '0, 243, 255', radius: 0.22, speedX: 0.91, speedY: 0.39, phase: 4.2 },
+  { radius: 0.3, speedX: 0.73, speedY: 0.51, phase: 0.2 },
+  { radius: 0.25, speedX: 0.47, speedY: 0.81, phase: 2.1 },
+  { radius: 0.22, speedX: 0.91, speedY: 0.39, phase: 4.2 },
 ];
 
 function drawBlob(context, x, y, radius, color, intensity = 0.2) {
@@ -58,10 +60,10 @@ export default function PixelLiquidBackground({ enabled }) {
         y,
         age: 0,
         life: 1800 + Math.random() * 900,
-        radius: 14 + Math.random() * 8,
+        radius: (14 + Math.random() * 8) * SMOKE_SCALE,
         driftX: (Math.random() - 0.5) * 0.006,
         driftY: -0.006 - Math.random() * 0.006,
-        color: Math.random() > 0.45 ? '0, 243, 255' : '57, 255, 20',
+        color: SMOKE_COLOR,
       });
 
       if (smokePuffs.length > MAX_SMOKE_PUFFS) {
@@ -138,9 +140,10 @@ export default function PixelLiquidBackground({ enabled }) {
         const radius =
           shortestSide *
           blob.radius *
+          SMOKE_SCALE *
           (1 + Math.sin(time * 0.83 + blob.phase) * 0.12);
 
-        drawBlob(bufferContext, x, y, radius, blob.color, 0.1);
+        drawBlob(bufferContext, x, y, radius, SMOKE_COLOR, 0.1);
       });
 
       smokePuffs = smokePuffs.filter((puff) => {

@@ -1,5 +1,5 @@
 import { act, fireEvent, render } from '@testing-library/react';
-import PixelLiquidBackground from './PixelLiquidBackground';
+import PixelLiquidBackground, { SMOKE_SCALE } from './PixelLiquidBackground';
 
 const createContext = () => ({
   clearRect: jest.fn(),
@@ -18,6 +18,7 @@ afterEach(() => {
 });
 
 test('adds pointer smoke only during RAF and cleans up', () => {
+  expect(SMOKE_SCALE).toBe(1.5);
   const mainContext = createContext();
   const bufferContext = createContext();
   let frameCallback;
