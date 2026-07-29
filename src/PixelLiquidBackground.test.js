@@ -205,7 +205,7 @@ test('runs the supplied WebGL pipeline and disposes every GPU resource', () => {
   const state = THREE.__mockState;
   const renderer = state.renderers[0];
 
-  expect(PIXEL_SIZE).toBe(18);
+  expect(PIXEL_SIZE).toBe(2);
   expect(LIQUID_PALETTE.at(-1)).toBe('#39ff14');
   expect(container.querySelector('.pixel-liquid-background canvas')).toBeInTheDocument();
   expect(renderer.render).toHaveBeenCalledTimes(13);

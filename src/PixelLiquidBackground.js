@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-export const PIXEL_SIZE = 18;
+export const PIXEL_SIZE = 2;
 export const LIQUID_PALETTE = [
   '#000000',
   '#061509',
