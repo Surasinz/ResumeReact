@@ -12,6 +12,8 @@
 /build
 /dist
 /.sites
+__pycache__/
+*.py[cod]
 
 # misc
 .DS_Store

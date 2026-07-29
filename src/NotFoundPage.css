@@ -266,9 +266,9 @@
 .error-bot-sprite {
   width: 180px;
   height: 180px;
-  background-position: -180px -900px;
+  background-position: -540px -720px;
   background-repeat: no-repeat;
-  background-size: 720px 1080px;
+  background-size: 1260px 900px;
   image-rendering: pixelated;
 }
 
@@ -466,8 +466,8 @@
   }
 
   .error-bot-sprite {
-    background-position: -144px -720px;
-    background-size: 576px 864px;
+    background-position: -432px -576px;
+    background-size: 1008px 720px;
   }
 
   .error-bot-message {

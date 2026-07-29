@@ -33,17 +33,22 @@ test('injects the mascot and selects sprite frames from the configured atlas', (
   expect(mascot.element).toBeInTheDocument();
   expect(mascot.element).toHaveAttribute('data-state', SHIMEJI_STATES.Falling);
   expect(mascot.element.style.backgroundImage).toContain('builder-bot-sprite.webp');
-  expect(mascot.element.style.backgroundSize).toBe('448px 672px');
-  expect(mascot.element.style.backgroundPosition).toBe('0px -448px');
+  expect(mascot.element.style.backgroundSize).toBe('896px 640px');
+  expect(mascot.element.style.backgroundPosition).toBe('0px -384px');
 
   mascot.setState(SHIMEJI_STATES.Working);
-  expect(mascot.element.style.backgroundPosition).toBe('0px -560px');
+  expect(mascot.element.style.backgroundPosition).toBe('0px -512px');
 
   mascot.position = { x: 12.345, y: 67.891 };
   mascot.renderPosition();
   expect(mascot.element.style.transform).toBe(
-    'translate3d(12.35px, 67.89px, 0)'
+    'translate3d(12.35px, 67.89px, 0) scaleX(1)'
   );
+
+  mascot.setState(SHIMEJI_STATES.WalkLeft);
+  expect(mascot.element.style.transform).toContain('scaleX(-1)');
+  mascot.setState(SHIMEJI_STATES.Idle);
+  expect(mascot.element.style.transform).toContain('scaleX(-1)');
 
   mascot.destroy();
   expect(document.querySelector('[data-web-shimeji]')).not.toBeInTheDocument();
@@ -53,13 +58,13 @@ test('injects the mascot and selects sprite frames from the configured atlas', (
 test('supports bounded drag and drop before returning to Falling', () => {
   const mascot = new WebShimeji({ spriteUrl: '/builder-bot-sprite.webp' }).mount();
   jest.spyOn(mascot.element, 'getBoundingClientRect').mockReturnValue({
-    bottom: 128,
-    height: 112,
-    left: 656,
+    bottom: 144,
+    height: 128,
+    left: 640,
     right: 768,
     top: 16,
-    width: 112,
-    x: 656,
+    width: 128,
+    x: 640,
     y: 16,
     toJSON: () => {},
   });

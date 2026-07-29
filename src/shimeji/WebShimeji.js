@@ -12,34 +12,34 @@ export const SHIMEJI_STATES = Object.freeze({
 /*
  * SPRITE ATLAS SETUP
  * ------------------
- * The bundled atlas is 4 columns × 6 rows. Each source cell is 256 × 256 px.
+ * The bundled atlas is 7 columns × 5 rows. Each source cell is 256 × 256 px.
  * To use another sprite sheet, update frameWidth, frameHeight, columns, rows,
  * and the row/column coordinates below. Frames do not need to be contiguous.
  */
 export const DEFAULT_ANIMATIONS = Object.freeze({
   [SHIMEJI_STATES.Idle]: {
-    frames: [0, 1, 2, 3].map((column) => ({ column, row: 0 })),
-    fps: 3,
-  },
-  [SHIMEJI_STATES.WalkRight]: {
-    frames: [0, 1, 2, 3].map((column) => ({ column, row: 1 })),
-    fps: 8,
-  },
-  [SHIMEJI_STATES.WalkLeft]: {
-    frames: [0, 1, 2, 3].map((column) => ({ column, row: 2 })),
-    fps: 8,
-  },
-  [SHIMEJI_STATES.Dragged]: {
-    frames: [0, 1, 2, 3].map((column) => ({ column, row: 3 })),
+    frames: [0, 1, 2, 3, 4, 5, 6].map((column) => ({ column, row: 0 })),
     fps: 6,
   },
-  [SHIMEJI_STATES.Falling]: {
-    frames: [0, 1, 2, 3].map((column) => ({ column, row: 4 })),
+  [SHIMEJI_STATES.WalkRight]: {
+    frames: [0, 1, 2, 3, 4, 5, 6].map((column) => ({ column, row: 1 })),
+    fps: 10,
+  },
+  [SHIMEJI_STATES.WalkLeft]: {
+    frames: [0, 1, 2, 3, 4, 5, 6].map((column) => ({ column, row: 1 })),
+    fps: 10,
+  },
+  [SHIMEJI_STATES.Dragged]: {
+    frames: [0, 1, 2, 3, 4, 5, 6].map((column) => ({ column, row: 2 })),
     fps: 8,
   },
+  [SHIMEJI_STATES.Falling]: {
+    frames: [0, 1, 2, 3, 4, 5, 6].map((column) => ({ column, row: 3 })),
+    fps: 10,
+  },
   [SHIMEJI_STATES.Working]: {
-    frames: [0, 1, 2, 3].map((column) => ({ column, row: 5 })),
-    fps: 5,
+    frames: [0, 1, 2, 3, 4, 5, 6].map((column) => ({ column, row: 4 })),
+    fps: 7,
   },
 });
 
@@ -54,9 +54,9 @@ export default class WebShimeji {
     spriteUrl,
     frameWidth = 256,
     frameHeight = 256,
-    columns = 4,
-    rows = 6,
-    displayWidth = 112,
+    columns = 7,
+    rows = 5,
+    displayWidth = 128,
     groundOffset = 8,
     walkSpeed = 72,
     fallSpeed = 480,
@@ -80,6 +80,7 @@ export default class WebShimeji {
 
     this.element = null;
     this.state = SHIMEJI_STATES.Falling;
+    this.facingDirection = 1;
     this.position = { x: 0, y: 0 };
     this.bounds = { width: 0, height: 0 };
     this.dragOffset = { x: 0, y: 0 };
@@ -168,6 +169,12 @@ export default class WebShimeji {
   setState(nextState, duration = 0) {
     if (!this.animations[nextState]) return;
 
+    if (nextState === SHIMEJI_STATES.WalkLeft) {
+      this.facingDirection = -1;
+    } else if (nextState === SHIMEJI_STATES.WalkRight) {
+      this.facingDirection = 1;
+    }
+
     this.state = nextState;
     this.frameIndex = 0;
     this.frameElapsed = 0;
@@ -176,6 +183,7 @@ export default class WebShimeji {
     if (this.element) {
       this.element.dataset.state = nextState;
       this.renderFrame();
+      this.renderPosition();
     }
   }
 
@@ -268,7 +276,8 @@ export default class WebShimeji {
     if (!this.element) return;
 
     this.element.style.transform =
-      `translate3d(${this.position.x.toFixed(2)}px, ${this.position.y.toFixed(2)}px, 0)`;
+      `translate3d(${this.position.x.toFixed(2)}px, ${this.position.y.toFixed(2)}px, 0) ` +
+      `scaleX(${this.facingDirection})`;
   }
 
   chooseNextAction() {
