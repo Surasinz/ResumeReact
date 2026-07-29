@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
+import WebShimeji from './shimeji/WebShimeji';
 
 const EMAIL = 'surachetpan@hotmail.com';
 const MATRIX_PREFERENCE_KEY = 'surachet-matrix-animation';
@@ -319,6 +320,15 @@ function App() {
   const [matrixEnabled, setMatrixEnabled] = useState(getInitialMatrixPreference);
   const copyResetTimer = useRef(null);
   const isMounted = useRef(true);
+
+  useEffect(() => {
+    const mascot = new WebShimeji({
+      spriteUrl: `${process.env.PUBLIC_URL}/builder-bot-sprite.webp`,
+    });
+
+    mascot.mount();
+    return () => mascot.destroy();
+  }, []);
 
   useEffect(() => {
     const elements = document.querySelectorAll('[data-reveal]');

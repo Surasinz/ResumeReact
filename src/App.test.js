@@ -35,6 +35,7 @@ test('renders the portfolio headline, navigation, and contact details', () => {
   expect(screen.getByRole('link', { name: /View Projects/i })).toHaveAttribute('href', '#projects');
   expect(screen.getByRole('link', { name: /Contact Me/i })).toHaveAttribute('href', '#contact');
   expect(screen.getByRole('link', { name: /Experience/i })).toHaveAttribute('href', '#experience');
+  expect(document.querySelector('.site-shell > [data-web-shimeji]')).toBeInTheDocument();
   expect(
     screen.getByRole('button', { name: /Copy surachetpan@hotmail.com to clipboard/i })
   ).toBeInTheDocument();

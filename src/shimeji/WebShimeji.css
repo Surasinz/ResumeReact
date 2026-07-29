@@ -1,0 +1,30 @@
+.web-shimeji {
+  position: fixed;
+  z-index: 55;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  border: 0;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.42));
+  cursor: grab;
+  user-select: none;
+  -webkit-user-drag: none;
+  contain: layout paint style;
+  will-change: transform, background-position;
+}
+
+.web-shimeji.is-dragging {
+  cursor: grabbing;
+  filter:
+    drop-shadow(0 14px 12px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 0 9px rgba(199, 255, 53, 0.25));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .web-shimeji {
+    will-change: auto;
+  }
+}
