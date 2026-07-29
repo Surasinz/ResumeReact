@@ -163,6 +163,62 @@ function ProjectVisual() {
   );
 }
 
+function AvatarSpotlight() {
+  const frameRef = useRef(null);
+
+  const handleMouseMove = (event) => {
+    const frame = frameRef.current;
+    if (!frame) return;
+
+    const bounds = frame.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+
+    const x = Math.min(Math.max((event.clientX - bounds.left) / bounds.width, 0), 1);
+    const y = Math.min(Math.max((event.clientY - bounds.top) / bounds.height, 0), 1);
+
+    frame.style.setProperty('--spotlight-x', `${x * 100}%`);
+    frame.style.setProperty('--spotlight-y', `${y * 100}%`);
+    frame.classList.add('is-spotlight-active');
+  };
+
+  const hideSpotlight = () => {
+    frameRef.current?.classList.remove('is-spotlight-active');
+  };
+
+  return (
+    <div
+      className="avatar-frame"
+      ref={frameRef}
+      data-testid="avatar-spotlight"
+      onMouseEnter={handleMouseMove}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={hideSpotlight}
+    >
+      <img
+        className="avatar-image avatar-image-formal"
+        src={`${process.env.PUBLIC_URL}/avatar-formal.webp`}
+        alt="3D streetwear avatar of Surachet Panto"
+        width="928"
+        height="960"
+        fetchPriority="high"
+        decoding="async"
+        draggable="false"
+      />
+      <img
+        className="avatar-image avatar-image-casual"
+        src={`${process.env.PUBLIC_URL}/surachet-avatar.webp`}
+        alt=""
+        aria-hidden="true"
+        width="928"
+        height="960"
+        fetchPriority="low"
+        decoding="async"
+        draggable="false"
+      />
+    </div>
+  );
+}
+
 function getInitialMatrixPreference() {
   try {
     const savedPreference = window.localStorage.getItem(MATRIX_PREFERENCE_KEY);
@@ -408,16 +464,7 @@ function App() {
           <div className="hero-visual" data-reveal>
             <div className="visual-orbit orbit-one" />
             <div className="visual-orbit orbit-two" />
-            <div className="avatar-frame">
-              <img
-                src={`${process.env.PUBLIC_URL}/surachet-avatar.webp`}
-                alt="3D streetwear avatar of Surachet Panto"
-                width="928"
-                height="960"
-                fetchPriority="high"
-                decoding="async"
-              />
-            </div>
+            <AvatarSpotlight />
             <div className="floating-label floating-label-code">
               <span>&lt;/&gt;</span>
               Enterprise builder

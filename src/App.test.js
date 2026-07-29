@@ -190,6 +190,35 @@ test('tilts the featured project visual toward the pointer and resets on leave',
   expect(visual.style.getPropertyValue('--tilt-y')).toBe('0deg');
 });
 
+test('tracks the pointer position across the avatar spotlight', () => {
+  render(<App />);
+  const spotlight = screen.getByTestId('avatar-spotlight');
+
+  jest.spyOn(spotlight, 'getBoundingClientRect').mockReturnValue({
+    bottom: 500,
+    height: 400,
+    left: 100,
+    right: 300,
+    top: 100,
+    width: 200,
+    x: 100,
+    y: 100,
+    toJSON: () => {},
+  });
+
+  fireEvent.mouseEnter(spotlight, { clientX: 250, clientY: 200 });
+  expect(spotlight).toHaveClass('is-spotlight-active');
+  expect(spotlight.style.getPropertyValue('--spotlight-x')).toBe('75%');
+  expect(spotlight.style.getPropertyValue('--spotlight-y')).toBe('25%');
+
+  fireEvent.mouseMove(spotlight, { clientX: 200, clientY: 300 });
+  expect(spotlight.style.getPropertyValue('--spotlight-x')).toBe('50%');
+  expect(spotlight.style.getPropertyValue('--spotlight-y')).toBe('50%');
+
+  fireEvent.mouseLeave(spotlight);
+  expect(spotlight).not.toHaveClass('is-spotlight-active');
+});
+
 test('keeps section navigation available at a narrow viewport', () => {
   window.innerWidth = 375;
   window.dispatchEvent(new Event('resize'));
