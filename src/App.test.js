@@ -117,20 +117,20 @@ test('lets keyboard and touch users pause and resume each skills marquee', () =>
 test('toggles the Matrix background and restores the saved preference', () => {
   const { unmount } = render(<App />);
   const disableButton = screen.getByRole('switch', {
-    name: /Disable Matrix background animation/i,
+    name: /Matrix background animation/i,
   });
 
   expect(disableButton).toHaveAttribute('aria-checked', 'true');
   fireEvent.click(disableButton);
   expect(window.localStorage.getItem('surachet-matrix-animation')).toBe('false');
   expect(
-    screen.getByRole('switch', { name: /Enable Matrix background animation/i })
+    screen.getByRole('switch', { name: /Matrix background animation/i })
   ).toHaveAttribute('aria-checked', 'false');
 
   unmount();
   render(<App />);
   expect(
-    screen.getByRole('switch', { name: /Enable Matrix background animation/i })
+    screen.getByRole('switch', { name: /Matrix background animation/i })
   ).toHaveAttribute('aria-checked', 'false');
 });
 
@@ -144,7 +144,7 @@ test('defaults the Matrix background to off when reduced motion is preferred', (
   render(<App />);
 
   expect(
-    screen.getByRole('switch', { name: /Enable Matrix background animation/i })
+    screen.getByRole('switch', { name: /Matrix background animation/i })
   ).toHaveAttribute('aria-checked', 'false');
   expect(window.localStorage.getItem('surachet-matrix-animation')).toBeNull();
 });

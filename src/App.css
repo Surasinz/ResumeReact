@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=DM+Sans:wght@400;500;600;700&display=swap');
-
 :root {
   --ink: #0a0a0d;
   --ink-soft: #121217;
@@ -25,7 +23,7 @@ body {
   margin: 0;
   background: var(--ink);
   color: var(--paper);
-  font-family: 'DM Sans', sans-serif;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 a {
@@ -168,7 +166,7 @@ a {
 
 .brand {
   width: max-content;
-  font-family: 'Archivo Black', sans-serif;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   font-size: 1.5rem;
   letter-spacing: -0.08em;
 }
@@ -256,7 +254,7 @@ footer {
 .section-heading h2,
 .contact h2 {
   margin: 0;
-  font-family: 'Archivo Black', sans-serif;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   font-weight: 400;
   letter-spacing: -0.07em;
   text-transform: uppercase;
@@ -582,7 +580,7 @@ footer {
 
 .stats strong {
   color: var(--acid);
-  font-family: 'Archivo Black', sans-serif;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   font-size: 2.3rem;
 }
 
@@ -611,7 +609,7 @@ footer {
 
 .timeline-index {
   color: var(--acid);
-  font-family: 'Archivo Black', sans-serif;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   font-size: 1.2rem;
 }
 
@@ -678,7 +676,7 @@ footer {
   border-radius: 50%;
   background: var(--acid);
   color: var(--ink);
-  font-family: 'Archivo Black', sans-serif;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   font-size: 1.65rem;
 }
 
@@ -702,7 +700,7 @@ footer {
 .education-achievement strong {
   display: block;
   color: var(--acid);
-  font-family: 'Archivo Black', sans-serif;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   font-size: 3.5rem;
 }
 
@@ -1490,11 +1488,9 @@ footer p {
 }
 
 @media (pointer: fine) {
-  html,
-  body,
   .site-shell,
   .site-shell * {
-    cursor: url('./assets/cursor.png') 3 3, auto;
+    cursor: var(--cursor-default);
   }
 
   .site-shell a,
@@ -1505,6 +1501,6 @@ footer p {
   .site-shell textarea,
   .site-shell label,
   .site-shell summary {
-    cursor: url('./assets/hand.png') 4 4, pointer;
+    cursor: var(--cursor-hand);
   }
 }

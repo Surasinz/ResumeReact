@@ -320,7 +320,13 @@ function App() {
   };
 
   return (
-    <div className="site-shell">
+    <div
+      className="site-shell"
+      style={{
+        '--cursor-default': `url("${process.env.PUBLIC_URL}/cursor.png") 3 3, auto`,
+        '--cursor-hand': `url("${process.env.PUBLIC_URL}/hand.png") 4 4, pointer`,
+      }}
+    >
       <MatrixBackground enabled={matrixEnabled} />
       <button
         className="matrix-toggle"
@@ -328,7 +334,7 @@ function App() {
         role="switch"
         onClick={toggleMatrixBackground}
         aria-checked={matrixEnabled}
-        aria-label={`${matrixEnabled ? 'Disable' : 'Enable'} Matrix background animation`}
+        aria-label="Matrix background animation"
       >
         <span className="matrix-switch-track" aria-hidden="true">
           <span className="matrix-switch-thumb" />
@@ -404,10 +410,12 @@ function App() {
             <div className="visual-orbit orbit-two" />
             <div className="avatar-frame">
               <img
-                src={`${process.env.PUBLIC_URL}/surachet-avatar.jpg`}
+                src={`${process.env.PUBLIC_URL}/surachet-avatar.webp`}
                 alt="3D streetwear avatar of Surachet Panto"
-                width="1280"
-                height="1280"
+                width="928"
+                height="960"
+                fetchPriority="high"
+                decoding="async"
               />
             </div>
             <div className="floating-label floating-label-code">
