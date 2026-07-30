@@ -111,7 +111,6 @@ body[data-theme='light'] .project-card {
 }
 
 body[data-theme='dark'] .button-primary,
-body[data-theme='dark'] .topbar-cta,
 body[data-theme='dark'] .status-dot,
 body[data-theme='dark'] .nav-indicator,
 body[data-theme='dark'] .matrix-switch-thumb,

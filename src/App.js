@@ -281,6 +281,7 @@ function getNavIndicatorTarget(
 }
 
 function App() {
+  const { theme } = useTheme();
   const [copyState, setCopyState] = useState('idle');
   const [backgroundEffectsEnabled, setBackgroundEffectsEnabled] = useState(
     getInitialBackgroundEffectsPreference
@@ -442,8 +443,8 @@ function App() {
     <div
       className="site-shell"
       style={{
-        '--cursor-default': `url("${process.env.PUBLIC_URL}/cursor.png") 3 3, auto`,
-        '--cursor-hand': `url("${process.env.PUBLIC_URL}/hand.png") 4 4, pointer`,
+        '--cursor-default': `url("${process.env.PUBLIC_URL}/${theme === 'dark' ? 'cursor-dark.png' : 'cursor.png'}") 3 3, auto`,
+        '--cursor-hand': `url("${process.env.PUBLIC_URL}/${theme === 'dark' ? 'hand-dark.png' : 'hand.png'}") 4 4, pointer`,
       }}
     >
       <MatrixRainBackground enabled={backgroundEffectsEnabled} />

@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import App from './App';
+import { THEME_STORAGE_KEY, ThemeProvider } from './ThemeSystem';
 
 const createCanvasContext = () => ({
   clearRect: jest.fn(),
@@ -245,6 +246,24 @@ test('tracks the pointer position across the avatar spotlight', () => {
 
   fireEvent.mouseLeave(spotlight);
   expect(spotlight).not.toHaveClass('is-spotlight-active');
+});
+
+test('uses cursor artwork that matches the active theme', () => {
+  window.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+
+  const { container } = render(
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  );
+  const shell = container.querySelector('.site-shell');
+
+  expect(shell.style.getPropertyValue('--cursor-default')).toContain(
+    '/cursor-dark.png'
+  );
+  expect(shell.style.getPropertyValue('--cursor-hand')).toContain(
+    '/hand-dark.png'
+  );
 });
 
 test('keeps section navigation available at a narrow viewport', () => {
