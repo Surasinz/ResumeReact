@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
-export const PIXEL_SIZE = 2;
 export const LIQUID_PALETTE = [
   '#000000',
   '#061509',
@@ -117,11 +116,8 @@ const colorFrag = `
 precision highp float;
 uniform sampler2D velocity;
 uniform sampler2D palette;
-uniform sampler2D uBayer;
 uniform vec4 bgColor;
 uniform float uTime;
-uniform vec2 uRes;
-uniform float uPixelSize;
 varying vec2 uv;
 
 float hash(vec2 p) {
@@ -140,18 +136,12 @@ float noise(vec2 p) {
 }
 
 void main() {
-  vec2 pixelGrid = uRes / uPixelSize;
-  vec2 pixelUv = (floor(uv * pixelGrid) + 0.5) / pixelGrid;
-  vec2 vel = texture2D(velocity, pixelUv).xy;
+  vec2 vel = texture2D(velocity, uv).xy;
   float len = clamp(length(vel) * 2.2, 0.0, 1.0);
-  vec2 bayerUv = (mod(floor(gl_FragCoord.xy), 4.0) + 0.5) / 4.0;
-  float dither = texture2D(uBayer, bayerUv).r - 0.5;
-  float noiseValue = noise(uv * 6.0 + uTime * 0.15) * 0.06 - 0.03;
-  float t = clamp(len + dither * 0.12 + noiseValue, 0.0, 1.0);
+  float noiseValue = noise(uv * 5.0 + uTime * 0.12) * 0.04 - 0.02;
+  float t = smoothstep(0.0, 1.0, clamp(len + noiseValue, 0.0, 1.0));
   vec3 fluidColor = texture2D(palette, vec2(t, 0.5)).rgb;
   vec3 color = mix(bgColor.rgb, fluidColor, t);
-  float grain = hash(gl_FragCoord.xy + vec2(uTime * 137.0, uTime * 91.0));
-  color += (grain - 0.5) * 0.085;
   float alpha = mix(bgColor.a, 1.0, t);
   gl_FragColor = vec4(clamp(color, 0.0, 1.0), alpha);
 }
@@ -181,27 +171,6 @@ function makePaletteTexture(stops) {
   return texture;
 }
 
-function makeBayerTexture() {
-  const raw = [
-    0, 136, 34, 170, 204, 68, 238, 102, 51, 187, 17, 153, 255, 119, 221, 85,
-  ];
-  const data = new Uint8Array(16 * 4);
-  raw.forEach((value, index) => {
-    data[index * 4] = value;
-    data[index * 4 + 1] = value;
-    data[index * 4 + 2] = value;
-    data[index * 4 + 3] = 255;
-  });
-  const texture = new THREE.DataTexture(data, 4, 4, THREE.RGBAFormat);
-  texture.magFilter = THREE.NearestFilter;
-  texture.minFilter = THREE.NearestFilter;
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.generateMipmaps = false;
-  texture.needsUpdate = true;
-  return texture;
-}
-
 class CommonGL {
   constructor() {
     this.width = 1;
@@ -218,7 +187,7 @@ class CommonGL {
     this.renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
     this.renderer.autoClear = false;
     this.renderer.setClearColor(0x000000, 0);
-    this.renderer.setPixelRatio(1);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.setSize(this.width, this.height, false);
     this.renderer.domElement.style.cssText =
       'width:100%;height:100%;display:block';
@@ -583,16 +552,12 @@ export default function PixelLiquidBackground({ enabled }) {
     const mouse = new MouseGL();
     mouse.init(container);
     const palette = makePaletteTexture(LIQUID_PALETTE);
-    const bayerTexture = makeBayerTexture();
     const simulation = new FluidSimulation(gl, mouse);
     const outputUniforms = {
       velocity: { value: simulation.fbos.vel0.texture },
       palette: { value: palette },
-      uBayer: { value: bayerTexture },
       bgColor: { value: new THREE.Vector4(0, 0, 0, 0) },
       uTime: { value: 0 },
-      uRes: { value: new THREE.Vector2(gl.width, gl.height) },
-      uPixelSize: { value: PIXEL_SIZE },
       boundarySpace: { value: new THREE.Vector2() },
     };
     const outputScene = new THREE.Scene();
@@ -617,7 +582,6 @@ export default function PixelLiquidBackground({ enabled }) {
     const handleResize = () => {
       gl.resize();
       simulation.resize();
-      outputUniforms.uRes.value.set(gl.width, gl.height);
     };
     const resizeObserver = new ResizeObserver(handleResize);
     resizeObserver.observe(container);
@@ -656,7 +620,6 @@ export default function PixelLiquidBackground({ enabled }) {
       mouse.dispose();
       simulation.dispose();
       palette.dispose();
-      bayerTexture.dispose();
       outputMaterial.dispose();
       outputGeometry.dispose();
       const canvas = gl.renderer?.domElement;
@@ -669,7 +632,6 @@ export default function PixelLiquidBackground({ enabled }) {
     <div
       ref={mountRef}
       className={`pixel-liquid-background${enabled ? ' is-enabled' : ''}`}
-      data-pixel-size={PIXEL_SIZE}
       aria-hidden="true"
     />
   );

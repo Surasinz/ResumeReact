@@ -178,7 +178,7 @@ test('renders Matrix and the WebGL Pixel Liquid layer and releases resources', (
 
   expect(matrixCanvas).toBeInTheDocument();
   expect(liquid).toHaveClass('is-enabled');
-  expect(liquid).toHaveAttribute('data-pixel-size', '2');
+  expect(liquid).not.toHaveAttribute('data-pixel-size');
   expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledTimes(1);
 
   unmount();

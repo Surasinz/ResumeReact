@@ -2,7 +2,6 @@ import { act, render } from '@testing-library/react';
 import * as THREE from 'three';
 import PixelLiquidBackground, {
   LIQUID_PALETTE,
-  PIXEL_SIZE,
 } from './PixelLiquidBackground';
 
 jest.mock('three', () => {
@@ -87,6 +86,7 @@ jest.mock('three', () => {
     constructor(options) {
       super(state.materials);
       this.uniforms = options.uniforms;
+      this.fragmentShader = options.fragmentShader;
     }
   }
 
@@ -97,8 +97,9 @@ jest.mock('three', () => {
   }
 
   class WebGLRenderer {
-    constructor() {
+    constructor(options) {
       if (state.throwRenderer) throw new Error('WebGL unavailable');
+      this.options = options;
       this.domElement = globalThis.document.createElement('canvas');
       this.setClearColor = jest.fn();
       this.setPixelRatio = jest.fn();
@@ -205,9 +206,15 @@ test('runs the supplied WebGL pipeline and disposes every GPU resource', () => {
   const state = THREE.__mockState;
   const renderer = state.renderers[0];
 
-  expect(PIXEL_SIZE).toBe(2);
   expect(LIQUID_PALETTE.at(-1)).toBe('#39ff14');
   expect(container.querySelector('.pixel-liquid-background canvas')).toBeInTheDocument();
+  expect(renderer.options).toEqual({ antialias: false, alpha: true });
+  const outputMaterial = state.materials.find((material) =>
+    material.fragmentShader.includes('fluidColor')
+  );
+  expect(outputMaterial.fragmentShader).toContain('texture2D(velocity, uv)');
+  expect(outputMaterial.fragmentShader).not.toContain('pixelGrid');
+  expect(outputMaterial.fragmentShader).not.toContain('uBayer');
   expect(renderer.render).toHaveBeenCalledTimes(13);
   expect(state.targets).toHaveLength(5);
 

@@ -54,13 +54,13 @@ a {
   left: 0;
   opacity: 0;
   pointer-events: none;
-  image-rendering: pixelated;
   transition: opacity 300ms ease;
 }
 
 .matrix-background {
   z-index: -2;
   mix-blend-mode: screen;
+  image-rendering: pixelated;
 }
 
 .matrix-background.is-enabled {
@@ -81,7 +81,7 @@ a {
 .pixel-liquid-background canvas {
   width: 100%;
   height: 100%;
-  image-rendering: pixelated;
+  image-rendering: auto;
 }
 
 .matrix-toggle {
