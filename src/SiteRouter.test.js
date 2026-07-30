@@ -8,6 +8,7 @@ jest.mock('./CyberPages', () => ({
 }));
 jest.mock('./NotFoundPage', () => () => <div>NOT_FOUND_PAGE</div>);
 jest.mock('./GuestbookGate', () => () => <div>REVIEW_PAGE</div>);
+jest.mock('./ComponentDocsPage', () => () => <div>COMPONENT_DOCS_PAGE</div>);
 
 beforeEach(() => {
   window.history.replaceState({}, '', '/');
@@ -30,6 +31,13 @@ test('routes review to the standalone feedback terminal', () => {
   render(<SiteRouter />);
 
   expect(screen.getByText('REVIEW_PAGE')).toBeInTheDocument();
+});
+
+test('routes component documentation to its standalone design-system page', () => {
+  window.history.replaceState({}, '', '/components');
+  render(<SiteRouter />);
+
+  expect(screen.getByText('COMPONENT_DOCS_PAGE')).toBeInTheDocument();
 });
 
 test('renders unknown paths as the 404 page immediately', () => {

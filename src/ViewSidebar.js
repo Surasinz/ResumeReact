@@ -25,6 +25,12 @@ const sidebarLinks = [
     code: 'Q&A',
     label: 'Interactive Interview Terminal',
   },
+  {
+    id: 'components',
+    href: '/components',
+    code: 'UI',
+    label: 'Component Documentation',
+  },
 ];
 
 export default function ViewSidebar({ currentPage }) {

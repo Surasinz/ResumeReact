@@ -23,6 +23,11 @@ test('links to every portfolio view and exposes the current page', () => {
     })
   ).toHaveAttribute('href', '/interview-me');
   expect(
+    within(navigation).getByRole('link', {
+      name: 'Component Documentation',
+    })
+  ).toHaveAttribute('href', '/components');
+  expect(
     within(navigation).getByRole('link', { name: 'Impact Dashboard' })
   ).toHaveAttribute('aria-current', 'page');
   expect(
