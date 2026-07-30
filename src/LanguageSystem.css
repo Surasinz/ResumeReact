@@ -1,0 +1,109 @@
+.language-switch {
+  position: fixed;
+  z-index: 90;
+  top: 88px;
+  right: 170px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 104px;
+  height: 42px;
+  padding: 4px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--electric) 42%, transparent);
+  border-radius: 999px;
+  background: var(--theme-panel);
+  box-shadow: 0 10px 28px var(--theme-shadow);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.language-switch button {
+  position: relative;
+  z-index: 2;
+  border: 0;
+  padding: 0;
+  color: var(--paper-muted);
+  background: transparent;
+  cursor: pointer;
+  font: 800 0.65rem/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: 0.09em;
+  transition:
+    color 0.3s ease,
+    text-shadow 0.3s ease;
+}
+
+.language-switch button.is-active {
+  color: var(--on-accent);
+  text-shadow: none;
+}
+
+.language-switch button:focus-visible {
+  outline: 2px solid var(--electric);
+  outline-offset: -2px;
+}
+
+.language-switch__indicator {
+  position: absolute;
+  z-index: 1;
+  top: 4px;
+  left: 4px;
+  width: 47px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--acid);
+  box-shadow: 0 0 16px rgba(var(--acid-rgb), 0.42);
+  transform: translateX(0);
+  transition:
+    transform 0.3s ease,
+    background-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.language-switch__indicator[data-language='th'] {
+  transform: translateX(48px);
+}
+
+.language-switch:hover {
+  border-color: var(--electric);
+  box-shadow:
+    0 10px 30px var(--theme-shadow),
+    0 0 16px color-mix(in srgb, var(--electric) 20%, transparent);
+}
+
+@media (max-width: 980px) {
+  .language-switch {
+    top: auto;
+    bottom: 78px;
+  }
+}
+
+@media (max-width: 720px) {
+  .language-switch {
+    top: auto;
+    bottom: 78px;
+    right: 140px;
+    width: 100px;
+    height: 38px;
+  }
+
+  .language-switch__indicator {
+    width: 45px;
+    height: 28px;
+  }
+
+  .language-switch__indicator[data-language='th'] {
+    transform: translateX(46px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .language-switch,
+  .language-switch button,
+  .language-switch__indicator {
+    transition-duration: 0.01ms;
+  }
+}

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import './CyberPages.css';
 import ViewSidebar from './ViewSidebar';
+import { useLanguage } from './LanguageSystem';
 
 const impactCategories = [
   {
@@ -216,6 +217,7 @@ function CyberPageIntro({ index, eyebrow, title, description }) {
 }
 
 export function ImpactPage() {
+  const { language, t } = useLanguage();
   useEffect(() => {
     document.title = 'Impact Dashboard — Surachet Panto';
   }, []);
@@ -243,7 +245,7 @@ export function ImpactPage() {
                 </div>
               </header>
               <div className="impact-grid">
-                {category.metrics.map((metric) => (
+                {category.metrics.map((metric, metricIndex) => (
                   <article className="impact-card" key={metric.label}>
                     <span className="impact-card-scan" aria-hidden="true" />
                     <AnimatedMetric
@@ -251,7 +253,22 @@ export function ImpactPage() {
                       suffix={metric.suffix}
                       decimals={metric.decimals}
                     />
-                    <h3>{metric.label}</h3>
+                    <h3
+                      lang={
+                        categoryIndex === 0 && metricIndex === 0
+                          ? language
+                          : undefined
+                      }
+                      data-i18n={
+                        categoryIndex === 0 && metricIndex === 0
+                          ? 'impact_metric'
+                          : undefined
+                      }
+                    >
+                      {categoryIndex === 0 && metricIndex === 0
+                        ? t('impact_metric')
+                        : metric.label}
+                    </h3>
                     <p>{metric.description}</p>
                   </article>
                 ))}

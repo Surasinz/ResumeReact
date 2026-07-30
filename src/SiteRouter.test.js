@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import SiteRouter from './SiteRouter';
+import { LANGUAGE_STORAGE_KEY } from './LanguageSystem';
 
 jest.mock('./App', () => () => <div>PORTFOLIO_PAGE</div>);
 jest.mock('./CyberPages', () => ({
@@ -11,6 +12,7 @@ jest.mock('./GuestbookGate', () => () => <div>REVIEW_PAGE</div>);
 jest.mock('./ComponentDocsPage', () => () => <div>COMPONENT_DOCS_PAGE</div>);
 
 beforeEach(() => {
+  window.localStorage.clear();
   window.history.replaceState({}, '', '/');
 });
 
@@ -45,4 +47,15 @@ test('renders unknown paths as the 404 page immediately', () => {
   render(<SiteRouter />);
 
   expect(screen.getByText('NOT_FOUND_PAGE')).toBeInTheDocument();
+});
+
+test('keeps untranslated route content marked as English in Thai mode', () => {
+  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, 'th');
+  const { container } = render(<SiteRouter />);
+
+  expect(document.documentElement).toHaveAttribute('lang', 'th');
+  expect(container.querySelector('.language-content')).toHaveAttribute(
+    'lang',
+    'en'
+  );
 });

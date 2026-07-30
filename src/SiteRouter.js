@@ -4,6 +4,10 @@ import { ImpactPage, InterviewPage } from './CyberPages';
 import GuestbookGate from './GuestbookGate';
 import NotFoundPage from './NotFoundPage';
 import { ThemeProvider, ThemeToggle } from './ThemeSystem';
+import {
+  LanguageProvider,
+  LanguageToggle,
+} from './LanguageSystem';
 
 export function resolvePage(pathname) {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/';
@@ -19,8 +23,13 @@ export function resolvePage(pathname) {
 export default function SiteRouter() {
   return (
     <ThemeProvider>
-      <ThemeToggle />
-      {resolvePage(window.location.pathname)}
+      <LanguageProvider>
+        <ThemeToggle />
+        <LanguageToggle />
+        <div className="language-content" lang="en">
+          {resolvePage(window.location.pathname)}
+        </div>
+      </LanguageProvider>
     </ThemeProvider>
   );
 }

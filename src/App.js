@@ -5,6 +5,7 @@ import PixelLiquidBackground from './PixelLiquidBackground';
 import WebShimeji from './shimeji/WebShimeji';
 import ViewSidebar from './ViewSidebar';
 import { useTheme } from './ThemeSystem';
+import { useLanguage } from './LanguageSystem';
 
 const EMAIL = 'surachetpan@hotmail.com';
 const BACKGROUND_EFFECTS_PREFERENCE_KEY = 'surachet-background-effects-animation';
@@ -282,6 +283,7 @@ function getNavIndicatorTarget(
 
 function App() {
   const { theme } = useTheme();
+  const { language, t } = useLanguage();
   const [copyState, setCopyState] = useState('idle');
   const [backgroundEffectsEnabled, setBackgroundEffectsEnabled] = useState(
     getInitialBackgroundEffectsPreference
@@ -535,7 +537,9 @@ function App() {
                 moveNavIndicator(navRef.current, event.currentTarget);
               }}
             >
-              {sectionId}
+              <span data-i18n={`nav_${sectionId}`} lang={language}>
+                {t(`nav_${sectionId}`)}
+              </span>
             </a>
           ))}
           <span className="nav-indicator" aria-hidden="true" />
@@ -553,19 +557,43 @@ function App() {
               Available for opportunities
             </div>
             <h1 data-reveal>
-              Hi, I&apos;m
-              <span>Surachet</span>
+              <span
+                className="hero-greeting"
+                data-i18n="hero_greeting"
+                lang={language}
+              >
+                {t('hero_greeting')}
+              </span>
+              <span className="hero-name">Surachet</span>
               <span className="outline-text">Panto.</span>
             </h1>
-            <p className="hero-subtitle" data-reveal>
-              Software Engineer specializing in enterprise applications
+            <p
+              className="hero-subtitle"
+              data-reveal
+              data-i18n="hero_subtitle"
+              lang={language}
+            >
+              {language === 'th' ? (
+                <>
+                  <span lang="en">Software Engineer</span>
+                  {' ที่เชี่ยวชาญด้าน '}
+                  <span lang="en">Enterprise Applications</span>
+                </>
+              ) : (
+                t('hero_subtitle')
+              )}
             </p>
             <div className="hero-actions" data-reveal>
               <a className="button button-primary" href="#projects">
-                View Projects <ArrowIcon />
+                <span data-i18n="view_projects" lang={language}>
+                  {t('view_projects')}
+                </span>{' '}
+                <ArrowIcon />
               </a>
               <a className="button button-secondary" href="#contact">
-                Contact Me
+                <span data-i18n="contact_btn" lang={language}>
+                  {t('contact_btn')}
+                </span>
               </a>
             </div>
             <div className="social-links" data-reveal>
