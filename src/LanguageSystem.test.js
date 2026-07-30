@@ -3,6 +3,8 @@ import {
   LANGUAGE_STORAGE_KEY,
   LanguageProvider,
   LanguageToggle,
+  LocalizedText,
+  translations,
   useLanguage,
 } from './LanguageSystem';
 
@@ -62,4 +64,40 @@ test('restores a saved Thai preference', () => {
     'data-language',
     'th'
   );
+});
+
+test('keeps the expanded English and Thai dictionaries in sync', () => {
+  const englishKeys = Object.keys(translations.en).sort();
+  const thaiKeys = Object.keys(translations.th).sort();
+
+  expect(englishKeys.length).toBeGreaterThan(100);
+  expect(thaiKeys).toEqual(englishKeys);
+});
+
+test('marks preserved technical terms as English inside Thai copy', () => {
+  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, 'th');
+
+  render(
+    <LanguageProvider>
+      <LocalizedText as="p" i18nKey="about_p1" />
+    </LanguageProvider>
+  );
+
+  expect(screen.getByText('Software Engineer')).toHaveAttribute('lang', 'en');
+  expect(screen.getByText('Oracle APEX')).toHaveAttribute('lang', 'en');
+  expect(screen.getByText('JavaScript')).toHaveAttribute('lang', 'en');
+});
+
+test('does not split short technical terms out of longer English words', () => {
+  window.localStorage.setItem(LANGUAGE_STORAGE_KEY, 'th');
+
+  const { container } = render(
+    <LanguageProvider>
+      <LocalizedText as="p">Building UI</LocalizedText>
+    </LanguageProvider>
+  );
+
+  expect(container.querySelector('p')).toHaveTextContent('Building UI');
+  expect(container.querySelectorAll('p > span[lang="en"]')).toHaveLength(1);
+  expect(container.querySelector('p > span[lang="en"]')).toHaveTextContent('UI');
 });

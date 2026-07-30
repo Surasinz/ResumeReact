@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { ImpactPage, InterviewPage } from './CyberPages';
+import { LanguageProvider, LanguageToggle } from './LanguageSystem';
 
 beforeEach(() => {
+  window.localStorage.clear();
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     value: jest.fn().mockReturnValue({ matches: false }),
@@ -115,4 +117,34 @@ test('shows complete terminal answers immediately when reduced motion is preferr
     'aria-busy',
     'false'
   );
+});
+
+test('restarts a running answer cleanly when the language changes', () => {
+  jest.useFakeTimers();
+  render(
+    <LanguageProvider>
+      <LanguageToggle />
+      <InterviewPage />
+    </LanguageProvider>
+  );
+
+  fireEvent.click(
+    screen.getByRole('button', { name: /What is your core strength\?/ })
+  );
+  act(() => {
+    jest.advanceTimersByTime(240);
+  });
+
+  fireEvent.click(screen.getByRole('button', { name: 'Use Thai' }));
+  act(() => {
+    jest.runAllTimers();
+  });
+
+  const output = document.querySelector(
+    '.terminal-answer > [aria-hidden="true"]'
+  );
+  expect(output).toHaveTextContent(
+    'ผมถนัดการเชื่อมระบบ Backend ที่ซับซ้อน'
+  );
+  expect(output).not.toHaveTextContent('I specialize');
 });

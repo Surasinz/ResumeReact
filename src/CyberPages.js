@@ -2,74 +2,68 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import './CyberPages.css';
 import ViewSidebar from './ViewSidebar';
-import { useLanguage } from './LanguageSystem';
+import { LocalizedText, useLanguage } from './LanguageSystem';
+import { splitGraphemes } from './graphemes';
 
 const impactCategories = [
   {
-    name: 'Enterprise System & Database Optimization',
+    nameKey: 'impact_category_database',
     code: 'SYS.DB',
     metrics: [
       {
         target: 85,
         suffix: '%',
-        label: 'Reduced Processing Time',
-        description:
-          'Optimized database scripts and targeted CUTOFF_FOR_EBOOK_DATE conditions to eliminate full-month scans, significantly reducing server load.',
+        labelKey: 'impact_metric',
+        descriptionKey: 'impact_metric_1_desc',
       },
       {
         target: 10000,
         suffix: '+',
-        label: 'Records Secured Daily',
-        description:
-          'Built a secure data pipeline using JSON parsing inside Database Triggers and secure token architecture.',
+        labelKey: 'impact_metric_2',
+        descriptionKey: 'impact_metric_2_desc',
       },
       {
         target: 40,
         suffix: '%',
-        label: 'Faster UI Load Time',
-        description:
-          'Enhanced front-end behaviors and Oracle APEX Interactive Grids for seamless enterprise data querying.',
+        labelKey: 'impact_metric_3',
+        descriptionKey: 'impact_metric_3_desc',
       },
     ],
   },
   {
-    name: 'Workflow Automation & Integration',
+    nameKey: 'impact_category_workflow',
     code: 'FLOW.AUTO',
     metrics: [
       {
         target: 40,
         suffix: '+',
-        label: 'Manual Hours Saved/Month',
-        description:
-          'Developed custom Automated Notification Scripts via Google Apps Script to eliminate repetitive tasks.',
+        labelKey: 'impact_metric_4',
+        descriptionKey: 'impact_metric_4_desc',
       },
       {
         target: 99.9,
         suffix: '%',
         decimals: 1,
-        label: 'Real-time Payload Accuracy',
-        description:
-          'Engineered zero-delay parameter extraction from Calendar Events to external communication channels.',
+        labelKey: 'impact_metric_5',
+        descriptionKey: 'impact_metric_5_desc',
       },
     ],
   },
   {
-    name: 'AI-Powered & Quantitative Architecture',
+    nameKey: 'impact_category_ai',
     code: 'AI.QUANT',
     metrics: [
       {
         target: 24,
         suffix: '/7',
-        label: 'Automated Trading',
-        description:
-          "Set up the 'QuantAgent' script environment overcoming execution policy blocks via Python virtual environments.",
+        labelKey: 'impact_metric_6',
+        descriptionKey: 'impact_metric_6_desc',
       },
       {
         target: 10,
         suffix: 'x',
-        label: 'Faster Trend Analysis',
-        description:
-          'Integrated Gemini API and LangChain frameworks to rapidly generate market insights.',
+        labelKey: 'impact_metric_7',
+        descriptionKey: 'impact_metric_7_desc',
       },
     ],
   },
@@ -78,45 +72,44 @@ const impactCategories = [
 const interviewQuestions = [
   {
     id: 'strength',
-    question: 'What is your core strength?',
-    answer:
-      'I specialize in bridging the gap between complex backend systems and user-friendly enterprise interfaces. I focus on deep database optimization, workflow automation, and creating secure data pipelines.',
+    questionKey: 'interview_q1',
+    answerKey: 'interview_a1',
   },
   {
     id: 'bottlenecks',
-    question: 'How do you handle system bottlenecks?',
-    answer:
-      'I analyze the data flow and pinpoint redundant queries. For example, I implemented targeted processing with specific date cutoffs instead of full-month data sweeps, which reduced processing time by up to 85%.',
+    questionKey: 'interview_q2',
+    answerKey: 'interview_a2',
   },
   {
     id: 'hire',
-    question: 'Why should we hire you?',
-    answer:
-      "I don't just write code; I build automated, scalable architectures. Whether it's managing Oracle APEX, deploying Google Apps Script for cross-channel syncs, or integrating LLM APIs for data analysis, I deliver direct business impact.",
+    questionKey: 'interview_q3',
+    answerKey: 'interview_a3',
   },
 ];
 
 function CyberHeader({ activePage }) {
+  const { language, t } = useLanguage();
+
   return (
     <header className="cyber-header">
       <a className="brand" href="/" aria-label="Surachet Panto — home">
         SP<span>.</span>
       </a>
-      <nav aria-label="Portfolio views">
-        <a href="/">Portfolio</a>
+      <nav aria-label={t('explore_portfolio_views')} lang={language}>
+        <a href="/"><LocalizedText i18nKey="header_portfolio" /></a>
         <a
           className={activePage === 'impact' ? 'is-active' : ''}
           href="/impact"
           aria-current={activePage === 'impact' ? 'page' : undefined}
         >
-          Impact
+          <LocalizedText i18nKey="header_impact" />
         </a>
         <a
           className={activePage === 'interview' ? 'is-active' : ''}
           href="/interview-me"
           aria-current={activePage === 'interview' ? 'page' : undefined}
         >
-          Interview me
+          <LocalizedText i18nKey="header_interview" />
         </a>
       </nav>
     </header>
@@ -200,16 +193,16 @@ function AnimatedMetric({ target, suffix, decimals = 0 }) {
   );
 }
 
-function CyberPageIntro({ index, eyebrow, title, description }) {
+function CyberPageIntro({ index, eyebrowKey, titleKey, descriptionKey }) {
   return (
     <section className="cyber-intro">
       <div className="cyber-intro-code" aria-hidden="true">
         {`VIEW_${index} // ONLINE`}
       </div>
-      <p>{eyebrow}</p>
-      <h1>{title}</h1>
+      <LocalizedText as="p" i18nKey={eyebrowKey} />
+      <LocalizedText as="h1" i18nKey={titleKey} />
       <div className="cyber-intro-bottom">
-        <p>{description}</p>
+        <LocalizedText as="p" i18nKey={descriptionKey} />
         <span>NONTHABURI // TH</span>
       </div>
     </section>
@@ -229,47 +222,36 @@ export function ImpactPage() {
       <main>
         <CyberPageIntro
           index="01"
-          eyebrow="Measured outcomes"
-          title="Impact Dashboard"
-          description="A data-driven view of the systems, automations, and intelligent workflows I build to create measurable enterprise value."
+          eyebrowKey="impact_eyebrow"
+          titleKey="impact_title"
+          descriptionKey="impact_desc"
         />
 
-        <section className="impact-dashboard" aria-label="Engineering impact metrics">
+        <section
+          className="impact-dashboard"
+          aria-label={t('impact_eyebrow')}
+          lang={language}
+        >
           {impactCategories.map((category, categoryIndex) => (
-            <section className="impact-category" key={category.name}>
+            <section className="impact-category" key={category.nameKey}>
               <header>
                 <span>{String(categoryIndex + 1).padStart(2, '0')}</span>
                 <div>
                   <p>{category.code}</p>
-                  <h2>{category.name}</h2>
+                  <LocalizedText as="h2" i18nKey={category.nameKey} />
                 </div>
               </header>
               <div className="impact-grid">
-                {category.metrics.map((metric, metricIndex) => (
-                  <article className="impact-card" key={metric.label}>
+                {category.metrics.map((metric) => (
+                  <article className="impact-card" key={metric.labelKey}>
                     <span className="impact-card-scan" aria-hidden="true" />
                     <AnimatedMetric
                       target={metric.target}
                       suffix={metric.suffix}
                       decimals={metric.decimals}
                     />
-                    <h3
-                      lang={
-                        categoryIndex === 0 && metricIndex === 0
-                          ? language
-                          : undefined
-                      }
-                      data-i18n={
-                        categoryIndex === 0 && metricIndex === 0
-                          ? 'impact_metric'
-                          : undefined
-                      }
-                    >
-                      {categoryIndex === 0 && metricIndex === 0
-                        ? t('impact_metric')
-                        : metric.label}
-                    </h3>
-                    <p>{metric.description}</p>
+                    <LocalizedText as="h3" i18nKey={metric.labelKey} />
+                    <LocalizedText as="p" i18nKey={metric.descriptionKey} />
                   </article>
                 ))}
               </div>
@@ -278,8 +260,8 @@ export function ImpactPage() {
         </section>
 
         <a className="cyber-next-view" href="/interview-me">
-          <span>Next interface</span>
-          Interactive Interview Terminal <b aria-hidden="true">→</b>
+          <LocalizedText i18nKey="next_interface" />
+          <LocalizedText i18nKey="sidebar_interview" /> <b aria-hidden="true">→</b>
         </a>
       </main>
       <CyberFooter />
@@ -288,12 +270,14 @@ export function ImpactPage() {
 }
 
 export function InterviewPage() {
+  const { language, t } = useLanguage();
   const [selectedId, setSelectedId] = useState(null);
   const [displayedAnswer, setDisplayedAnswer] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const selectedQuestion = interviewQuestions.find(
     (item) => item.id === selectedId
   );
+  const selectedAnswer = selectedQuestion ? t(selectedQuestion.answerKey) : '';
 
   useEffect(() => {
     document.title = 'Interview Terminal — Surachet Panto';
@@ -302,7 +286,8 @@ export function InterviewPage() {
   useEffect(() => {
     if (!selectedQuestion) return undefined;
 
-    const answer = selectedQuestion.answer;
+    const answer = selectedAnswer;
+    const answerGraphemes = splitGraphemes(answer, language);
     const reducedMotion =
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
@@ -320,9 +305,9 @@ export function InterviewPage() {
 
     const typeNextCharacter = () => {
       characterIndex += 1;
-      setDisplayedAnswer(answer.slice(0, characterIndex));
+      setDisplayedAnswer(answerGraphemes.slice(0, characterIndex).join(''));
 
-      if (characterIndex < answer.length) {
+      if (characterIndex < answerGraphemes.length) {
         typeTimer = window.setTimeout(typeNextCharacter, 16);
       } else {
         setIsTyping(false);
@@ -334,7 +319,7 @@ export function InterviewPage() {
     return () => {
       window.clearTimeout(typeTimer);
     };
-  }, [selectedQuestion]);
+  }, [language, selectedAnswer, selectedQuestion]);
 
   return (
     <div className="cyber-page">
@@ -343,9 +328,9 @@ export function InterviewPage() {
       <main>
         <CyberPageIntro
           index="02"
-          eyebrow="Ask the builder"
-          title="Interview Terminal"
-          description="Select a prompt to inspect how I approach enterprise engineering, bottlenecks, automation, and measurable delivery."
+          eyebrowKey="interview_eyebrow"
+          titleKey="interview_title"
+          descriptionKey="interview_desc"
         />
 
         <section className="interview-terminal" aria-labelledby="terminal-title">
@@ -360,7 +345,11 @@ export function InterviewPage() {
           </header>
 
           <div className="terminal-layout">
-            <aside className="terminal-prompts" aria-label="Interview questions">
+            <aside
+              className="terminal-prompts"
+              aria-label={t('interview_eyebrow')}
+              lang={language}
+            >
               <p>AVAILABLE_PROMPTS</p>
               {interviewQuestions.map((item, index) => (
                 <button
@@ -371,7 +360,7 @@ export function InterviewPage() {
                   onClick={() => setSelectedId(item.id)}
                 >
                   <span>{String(index + 1).padStart(2, '0')}</span>
-                  {item.question}
+                  <LocalizedText i18nKey={item.questionKey} />
                 </button>
               ))}
             </aside>
@@ -389,18 +378,23 @@ export function InterviewPage() {
                 data-empty={!selectedQuestion}
               >
                 <span aria-hidden="true">
-                  {selectedQuestion
-                    ? displayedAnswer
-                    : 'Choose a question from the prompt directory to begin.'}
+                  <LocalizedText>
+                    {selectedQuestion ? displayedAnswer : t('choose_question')}
+                  </LocalizedText>
                   <i className="terminal-cursor" />
                 </span>
-                <span className="sr-only" role="status" aria-live="polite">
+                <LocalizedText
+                  as="span"
+                  className="sr-only"
+                  role="status"
+                  aria-live="polite"
+                >
                   {selectedQuestion
                     ? isTyping
-                      ? `Generating answer for ${selectedQuestion.question}`
-                      : selectedQuestion.answer
-                    : 'Choose an interview question to begin.'}
-                </span>
+                      ? `${t('generating_answer')} ${t(selectedQuestion.questionKey)}`
+                      : selectedAnswer
+                    : t('choose_interview')}
+                </LocalizedText>
               </div>
               <div className="terminal-status" aria-hidden="true">
                 <span>STATUS: {isTyping ? 'TRANSMITTING' : 'READY'}</span>
@@ -412,8 +406,8 @@ export function InterviewPage() {
         </section>
 
         <a className="cyber-next-view" href="/impact">
-          <span>Inspect the data</span>
-          Return to Impact Dashboard <b aria-hidden="true">←</b>
+          <LocalizedText i18nKey="inspect_data" />
+          <LocalizedText i18nKey="return_impact" /> <b aria-hidden="true">←</b>
         </a>
       </main>
       <CyberFooter />
@@ -428,7 +422,9 @@ function CyberFooter() {
         SP<span>.</span>
       </a>
       <p>Enterprise Builder // Surachet Panto</p>
-      <a href="mailto:surachetpan@hotmail.com">Initialize contact ↗</a>
+      <a href="mailto:surachetpan@hotmail.com">
+        <LocalizedText i18nKey="initialize_contact" /> ↗
+      </a>
     </footer>
   );
 }

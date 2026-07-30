@@ -4,6 +4,7 @@ import ComponentDocsPage, {
   PRISM_SCRIPTS,
   PRISM_STYLES,
 } from './ComponentDocsPage';
+import { LanguageProvider, LanguageToggle } from './LanguageSystem';
 
 beforeEach(() => {
   window.history.replaceState({}, '', '/components');
@@ -147,4 +148,55 @@ test('documents every configured component', () => {
     'spotlight-avatar',
     'terminal-form',
   ]);
+});
+
+test('refreshes the Prism copy toolbar label after switching language', async () => {
+  window.Prism.highlightAllUnder.mockImplementation((root) => {
+    root.querySelectorAll('pre').forEach((pre) => {
+      if (pre.parentElement?.classList.contains('code-toolbar')) return;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'code-toolbar';
+      pre.parentNode.insertBefore(wrapper, pre);
+      wrapper.appendChild(pre);
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'toolbar';
+      const button = document.createElement('button');
+      button.className = 'copy-to-clipboard-button';
+      const label = document.createElement('span');
+      label.textContent = pre.dataset.prismjsCopy;
+      const successLabel = pre.dataset.prismjsCopySuccess;
+      button.addEventListener('click', () => {
+        label.textContent = successLabel;
+      });
+      button.appendChild(label);
+      toolbar.appendChild(button);
+      wrapper.appendChild(toolbar);
+    });
+  });
+
+  render(
+    <LanguageProvider>
+      <LanguageToggle />
+      <ComponentDocsPage />
+    </LanguageProvider>
+  );
+  await waitFor(() => {
+    expect(window.Prism.highlightAllUnder).toHaveBeenCalledTimes(1);
+  });
+  const englishButton = document.querySelector('.copy-to-clipboard-button');
+  expect(englishButton).toHaveTextContent('Copy');
+
+  fireEvent.click(screen.getByRole('button', { name: 'Use Thai' }));
+
+  await waitFor(() => {
+    expect(window.Prism.highlightAllUnder).toHaveBeenCalledTimes(2);
+  });
+  expect(document.body.contains(englishButton)).toBe(false);
+
+  const thaiButton = document.querySelector('.copy-to-clipboard-button');
+  expect(thaiButton).toHaveTextContent('คัดลอก');
+  fireEvent.click(thaiButton);
+  expect(thaiButton).toHaveTextContent('คัดลอกแล้ว! ✅');
 });

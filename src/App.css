@@ -662,7 +662,7 @@ body[data-language='th'] .hero-greeting {
   text-transform: uppercase;
 }
 
-.section-heading p span {
+.section-heading p .section-heading-number {
   margin-right: 1.1rem;
   color: var(--accent-text);
 }

@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import './NotFoundPage.css';
 import ViewSidebar from './ViewSidebar';
+import { LocalizedText, useLanguage } from './LanguageSystem';
+import { splitGraphemes } from './graphemes';
 
 const ERROR_LOG =
   '> PAGE NOT FOUND\n' +
   '> SYSTEM_LOG: Directory missing or execution policy blocked.\n' +
   '> ACTION: Awaiting manual reboot...';
 
-function RepairBot({ messageVisible }) {
+function RepairBot({ messageVisible, message }) {
   return (
     <div className="error-bot-wrap" aria-label="Builder bot repairing the missing page">
       <div
@@ -16,7 +18,7 @@ function RepairBot({ messageVisible }) {
         role="status"
         aria-live="polite"
       >
-        {messageVisible ? 'WARNING: Page payload not found!' : ''}
+        {messageVisible ? message : ''}
       </div>
       <div
         className="error-bot-sprite"
@@ -31,29 +33,37 @@ function RepairBot({ messageVisible }) {
 }
 
 export default function NotFoundPage() {
+  const { language, t } = useLanguage();
   const [typedLog, setTypedLog] = useState('');
   const [typingComplete, setTypingComplete] = useState(false);
+  const localizedErrorLog =
+    `> ${t('error_page_not_found')}\n` +
+    `> ${t('error_system_log')}\n` +
+    `> ${t('error_action')}`;
 
   useEffect(() => {
     document.title = '404 — Page Payload Not Found';
+    setTypedLog('');
+    setTypingComplete(false);
 
     const reducedMotion =
       window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 
     if (reducedMotion) {
-      setTypedLog(ERROR_LOG);
+      setTypedLog(localizedErrorLog);
       setTypingComplete(true);
       return undefined;
     }
 
     let characterIndex = 0;
     let typeTimer = null;
+    const logGraphemes = splitGraphemes(localizedErrorLog, language);
 
     const typeNextCharacter = () => {
       characterIndex += 1;
-      setTypedLog(ERROR_LOG.slice(0, characterIndex));
+      setTypedLog(logGraphemes.slice(0, characterIndex).join(''));
 
-      if (characterIndex < ERROR_LOG.length) {
+      if (characterIndex < logGraphemes.length) {
         typeTimer = window.setTimeout(typeNextCharacter, 18);
       } else {
         setTypingComplete(true);
@@ -65,7 +75,7 @@ export default function NotFoundPage() {
     return () => {
       window.clearTimeout(typeTimer);
     };
-  }, []);
+  }, [language, localizedErrorLog]);
 
   return (
     <main className="error-page">
@@ -99,9 +109,10 @@ export default function NotFoundPage() {
           <div
             className="error-terminal-output"
             aria-busy={!typingComplete}
-            aria-label={ERROR_LOG}
+            aria-label={localizedErrorLog}
+            lang={language}
           >
-            <span aria-hidden="true">{typedLog}</span>
+            <LocalizedText aria-hidden="true">{typedLog}</LocalizedText>
             <i className="error-terminal-cursor" aria-hidden="true">
               █
             </i>
@@ -109,11 +120,11 @@ export default function NotFoundPage() {
         </div>
 
         <a className="error-reboot" href="/">
-          <span>[ INITIALIZE REBOOT ]</span>
+          <span>[ <LocalizedText i18nKey="error_reboot" /> ]</span>
         </a>
       </section>
 
-      <RepairBot messageVisible={typingComplete} />
+      <RepairBot messageVisible={typingComplete} message={t('error_warning')} />
 
       <footer className="error-footer" aria-hidden="true">
         <span>ENTERPRISE_BUILDER_OS v2.6</span>

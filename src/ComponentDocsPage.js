@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './ComponentDocsPage.css';
+import { LocalizedText, useLanguage } from './LanguageSystem';
 
 const PRISM_VERSION = '1.29.0';
 const PRISM_STYLES = [
@@ -129,6 +130,15 @@ function loadPrism() {
   return prismLoader;
 }
 
+function resetPrismToolbars(root) {
+  root.querySelectorAll('.code-toolbar').forEach((wrapper) => {
+    const pre = Array.from(wrapper.children).find(
+      (child) => child.tagName === 'PRE'
+    );
+    if (pre) wrapper.replaceWith(pre);
+  });
+}
+
 const spotlightHtml = `<button
   class="spotlight-avatar"
   type="button"
@@ -247,12 +257,16 @@ const COMPONENTS = [
     id: 'spotlight-avatar',
     index: '01',
     title: 'Mouse Spotlight Reveal',
+    titleKey: 'docs_spotlight_title',
     shortTitle: 'Spotlight Avatar',
+    shortTitleKey: 'docs_spotlight_short',
     status: 'INTERACTIVE',
     description:
       'Two perfectly aligned avatar layers use a soft radial mask to reveal the alternate image exactly beneath the pointer.',
+    descriptionKey: 'docs_spotlight_desc',
     prompt:
       'Create a two-layer profile image. Track the pointer inside the frame and use a feathered radial CSS mask to reveal the image underneath. Fade the reveal out when the pointer leaves.',
+    promptKey: 'docs_spotlight_prompt',
     code: [
       { label: 'HTML', language: 'html', value: spotlightHtml },
       { label: 'CSS', language: 'css', value: spotlightCss },
@@ -263,12 +277,16 @@ const COMPONENTS = [
     id: 'terminal-form',
     index: '02',
     title: 'Terminal Feedback Form',
+    titleKey: 'docs_terminal_title',
     shortTitle: 'Terminal Form',
+    shortTitleKey: 'docs_terminal_short',
     status: 'FORM UI',
     description:
       'A focused terminal-style form pattern with clear labels, neon focus states, and a high-contrast transmission action.',
+    descriptionKey: 'docs_terminal_desc',
     prompt:
       'Design an accessible cyberpunk feedback form with monospace labels, transparent inputs, neon focus borders, and a prominent transmit button.',
+    promptKey: 'docs_terminal_prompt',
     code: [
       { label: 'HTML', language: 'html', value: terminalHtml },
       { label: 'CSS', language: 'css', value: terminalCss },
@@ -277,6 +295,7 @@ const COMPONENTS = [
 ];
 
 function SpotlightPreview() {
+  const { language, t } = useLanguage();
   const frameRef = useRef(null);
   const [pinned, setPinned] = useState(false);
 
@@ -299,7 +318,8 @@ function SpotlightPreview() {
       type="button"
       className={`docs-spotlight${pinned ? ' is-pinned' : ''}`}
       ref={frameRef}
-      aria-label="Toggle alternate avatar reveal"
+      aria-label={t('docs_move_cursor')}
+      lang={language}
       aria-pressed={pinned}
       onPointerEnter={updateSpotlight}
       onPointerMove={updateSpotlight}
@@ -329,27 +349,37 @@ function SpotlightPreview() {
         height="960"
         draggable="false"
       />
-      <span aria-hidden="true">MOVE CURSOR // REVEAL LAYER</span>
+      <LocalizedText i18nKey="docs_move_cursor" aria-hidden="true" />
     </button>
   );
 }
 
 function TerminalFormPreview() {
+  const { language, t } = useLanguage();
+
   return (
     <form
       className="docs-terminal-form"
       onSubmit={(event) => event.preventDefault()}
     >
       <label>
-        <span>CALLSIGN</span>
-        <input type="text" placeholder="Enter your name" />
+        <LocalizedText i18nKey="docs_callsign" />
+        <input
+          type="text"
+          lang={language}
+          placeholder={t('docs_name_placeholder')}
+        />
       </label>
       <label>
-        <span>MESSAGE</span>
-        <textarea rows="3" placeholder="Write a transmission" />
+        <LocalizedText i18nKey="docs_message" />
+        <textarea
+          rows="3"
+          lang={language}
+          placeholder={t('docs_message_placeholder')}
+        />
       </label>
-      <button type="submit">[ TRANSMIT DATA ]</button>
-      <small>PREVIEW MODE // NO PAYLOAD TRANSMITTED</small>
+      <button type="submit">[ <LocalizedText i18nKey="transmit" /> ]</button>
+      <LocalizedText as="small" i18nKey="docs_preview_mode" />
     </form>
   );
 }
@@ -363,6 +393,7 @@ function ComponentPreview({ componentId }) {
 }
 
 export default function ComponentDocsPage() {
+  const { language, t } = useLanguage();
   const initialId = window.location.hash.slice(1);
   const [selectedId, setSelectedId] = useState(
     COMPONENTS.some((component) => component.id === initialId)
@@ -436,6 +467,7 @@ export default function ComponentDocsPage() {
     loadPrism()
       .then((Prism) => {
         if (active && contentRef.current) {
+          resetPrismToolbars(contentRef.current);
           Prism.highlightAllUnder(contentRef.current);
         }
       })
@@ -446,12 +478,17 @@ export default function ComponentDocsPage() {
     return () => {
       active = false;
     };
-  }, [selectedId]);
+  }, [language, selectedId, t]);
 
   return (
     <div className="component-docs-page">
       <header className="docs-mobile-header">
-        <a href="/" className="docs-brand" aria-label="Back to portfolio">
+        <a
+          href="/"
+          className="docs-brand"
+          aria-label={t('docs_back')}
+          lang={language}
+        >
           SP<span>.</span>
         </a>
         <span>COMPONENT SYSTEM</span>
@@ -459,7 +496,8 @@ export default function ComponentDocsPage() {
           type="button"
           aria-expanded={menuOpen}
           aria-controls="component-navigation"
-          aria-label="Toggle component navigation"
+          aria-label={t('docs_toggle_nav')}
+          lang={language}
           ref={menuToggleRef}
           onClick={() => setMenuOpen((current) => !current)}
         >
@@ -476,15 +514,20 @@ export default function ComponentDocsPage() {
         aria-hidden={isMobile && !menuOpen ? 'true' : undefined}
         inert={isMobile && !menuOpen ? true : undefined}
       >
-        <a href="/" className="docs-brand" aria-label="Back to portfolio">
+        <a
+          href="/"
+          className="docs-brand"
+          aria-label={t('docs_back')}
+          lang={language}
+        >
           SP<span>.</span>
         </a>
         <div className="docs-sidebar-heading">
           <span>DS_01</span>
-          <p>Component Documentation</p>
+          <LocalizedText as="p" i18nKey="docs_title" />
         </div>
         <nav aria-label="Component documentation">
-          <p>COMPONENT_INDEX</p>
+          <LocalizedText as="p" i18nKey="docs_index" />
           {COMPONENTS.map((component) => (
             <a
               href={`#${component.id}`}
@@ -497,13 +540,13 @@ export default function ComponentDocsPage() {
               }}
             >
               <span aria-hidden="true">{component.index}</span>
-              {component.shortTitle}
+              <LocalizedText i18nKey={component.shortTitleKey} />
             </a>
           ))}
         </nav>
         <div className="docs-sidebar-footer">
           <span>STATUS</span>
-          <b>DOCUMENTED</b>
+          <LocalizedText as="b" i18nKey="docs_documented" />
         </div>
       </aside>
 
@@ -511,7 +554,8 @@ export default function ComponentDocsPage() {
         <button
           type="button"
           className="docs-menu-scrim"
-          aria-label="Close component navigation"
+          aria-label={t('docs_close_nav')}
+          lang={language}
           onClick={() => setMenuOpen(false)}
         />
       )}
@@ -520,13 +564,13 @@ export default function ComponentDocsPage() {
         <section className="docs-hero">
           <span>ENTERPRISE_BUILDER // UI_LIBRARY</span>
           <p>Design System / v1.0</p>
-          <h1>Component<br />Documentation</h1>
+          <LocalizedText as="h1" i18nKey="docs_hero_title" />
           <div>
-            <p>
-              Interactive patterns, implementation prompts, and production-ready
-              code from the Surachet portfolio interface.
-            </p>
-            <span>{String(COMPONENTS.length).padStart(2, '0')} COMPONENTS</span>
+            <LocalizedText as="p" i18nKey="docs_hero_desc" />
+            <span>
+              {String(COMPONENTS.length).padStart(2, '0')}{' '}
+              <LocalizedText i18nKey="docs_components" />
+            </span>
           </div>
         </section>
 
@@ -534,17 +578,17 @@ export default function ComponentDocsPage() {
           <header className="docs-component-header">
             <div>
               <span>{`${selected.index} // ${selected.status}`}</span>
-              <h2>{selected.title}</h2>
-              <p>{selected.description}</p>
+              <LocalizedText as="h2" i18nKey={selected.titleKey} />
+              <LocalizedText as="p" i18nKey={selected.descriptionKey} />
             </div>
-            <b>READY</b>
+            <LocalizedText as="b" i18nKey="docs_ready" />
           </header>
 
           <section className="docs-block" aria-labelledby="preview-title">
             <header>
               <span>01</span>
-              <h3 id="preview-title">Live Preview</h3>
-              <small>INTERACTIVE SANDBOX</small>
+              <LocalizedText as="h3" id="preview-title" i18nKey="docs_live_preview" />
+              <LocalizedText as="small" i18nKey="docs_sandbox" />
             </header>
             <div className="preview-box">
               <ComponentPreview componentId={selected.id} />
@@ -554,12 +598,12 @@ export default function ComponentDocsPage() {
           <section className="docs-block" aria-labelledby="prompt-title">
             <header>
               <span>02</span>
-              <h3 id="prompt-title">AI Prompt</h3>
-              <small>GENERATION INPUT</small>
+              <LocalizedText as="h3" id="prompt-title" i18nKey="docs_ai_prompt" />
+              <LocalizedText as="small" i18nKey="docs_generation_input" />
             </header>
             <blockquote className="docs-prompt">
               <span aria-hidden="true">builder@prompt:~$</span>
-              <p>{selected.prompt}</p>
+              <LocalizedText as="p" i18nKey={selected.promptKey} />
               <i aria-hidden="true" />
             </blockquote>
           </section>
@@ -567,8 +611,8 @@ export default function ComponentDocsPage() {
           <section className="docs-block" aria-labelledby="code-title">
             <header>
               <span>03</span>
-              <h3 id="code-title">Code Snippets</h3>
-              <small>PRISM.JS // COPY ENABLED</small>
+              <LocalizedText as="h3" id="code-title" i18nKey="docs_code_snippets" />
+              <LocalizedText as="small" i18nKey="docs_copy_enabled" />
             </header>
             <div className="docs-code-grid">
               {selected.code.map((snippet) => (
@@ -580,9 +624,10 @@ export default function ComponentDocsPage() {
                   <pre
                     className="line-numbers"
                     data-label={snippet.label}
-                    data-prismjs-copy="Copy"
-                    data-prismjs-copy-success="Copied!"
-                    data-prismjs-copy-error="Press Ctrl+C"
+                    data-prismjs-copy={t('copy')}
+                    data-prismjs-copy-success={t('copied')}
+                    data-prismjs-copy-error={t('copy_failed')}
+                    lang="en"
                   >
                     <code className={`line-numbers language-${snippet.language}`}>
                       {snippet.value}
@@ -596,7 +641,7 @@ export default function ComponentDocsPage() {
 
         <footer className="docs-page-footer">
           <span>SURACHET_UI // 2026</span>
-          <a href="/">Return to portfolio ↗</a>
+          <a href="/"><LocalizedText i18nKey="return_portfolio" /> ↗</a>
         </footer>
       </main>
     </div>

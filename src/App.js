@@ -5,7 +5,7 @@ import PixelLiquidBackground from './PixelLiquidBackground';
 import WebShimeji from './shimeji/WebShimeji';
 import ViewSidebar from './ViewSidebar';
 import { useTheme } from './ThemeSystem';
-import { useLanguage } from './LanguageSystem';
+import { LocalizedText, useLanguage } from './LanguageSystem';
 
 const EMAIL = 'surachetpan@hotmail.com';
 const BACKGROUND_EFFECTS_PREFERENCE_KEY = 'surachet-background-effects-animation';
@@ -15,25 +15,22 @@ const LEGACY_MATRIX_PREFERENCE_KEY = 'surachet-matrix-animation';
 const experiences = [
   {
     period: '03/2025 — Present',
-    role: 'Software Engineer',
+    roleKey: 'exp_software_role',
     company: 'Gosoft (Thailand) Co., Ltd.',
-    description:
-      'Develop enterprise applications using Java, Oracle APEX, JavaScript, React, SQL, and PL/SQL. Optimize SQL queries and PL/SQL programs to improve application performance.',
+    descriptionKey: 'exp_software_desc',
     current: true,
   },
   {
     period: '07/2024 — 02/2025',
-    role: 'Trainee Software Engineer',
+    roleKey: 'exp_trainee_role',
     company: 'Gosoft (Thailand) Co., Ltd.',
-    description:
-      'Built enterprise web applications, developed Java back-end services and TypeScript front-end features, and created automated tests using Cypress.',
+    descriptionKey: 'exp_trainee_desc',
   },
   {
     period: '09/2023 — 12/2023',
-    role: 'Part Time Software Engineer',
+    roleKey: 'exp_part_time_role',
     company: 'Enterprise Computing Services (Thailand) Co., Ltd.',
-    description:
-      'Assisted in software and database design, and developed and maintained MySQL databases.',
+    descriptionKey: 'exp_part_time_desc',
   },
 ];
 
@@ -62,20 +59,22 @@ function ArrowIcon() {
   return <span aria-hidden="true">↗</span>;
 }
 
-function SectionHeading({ number, eyebrow, title }) {
+function SectionHeading({ number, eyebrowKey, titleKey }) {
   return (
     <div className="section-heading" data-reveal>
       <p>
-        <span>{number}</span>
-        {eyebrow}
+        <span className="section-heading-number">{number}</span>
+        <LocalizedText i18nKey={eyebrowKey} />
       </p>
-      <h2>{title}</h2>
+      <LocalizedText as="h2" i18nKey={titleKey} />
     </div>
   );
 }
 
-function SkillMarquee({ label, items, reverse = false }) {
+function SkillMarquee({ labelKey, items, reverse = false }) {
   const [paused, setPaused] = useState(false);
+  const { language, t } = useLanguage();
+  const label = t(labelKey);
 
   const renderItems = (duplicate = false) => (
     <div className="marquee-group" aria-hidden={duplicate || undefined}>
@@ -91,16 +90,17 @@ function SkillMarquee({ label, items, reverse = false }) {
   return (
     <div className="skill-marquee" data-reveal>
       <div className="marquee-header">
-        <p className="card-kicker">{label}</p>
+        <LocalizedText as="p" className="card-kicker" i18nKey={labelKey} />
         <button
           className="marquee-toggle"
           type="button"
+          lang={language}
           onClick={() => setPaused((current) => !current)}
           aria-pressed={paused}
-          aria-label={`${paused ? 'Resume' : 'Pause'} ${label} animation`}
+          aria-label={`${t(paused ? 'resume' : 'pause')} ${label} ${t('animation')}`}
         >
           <span aria-hidden="true">{paused ? '▶' : 'Ⅱ'}</span>
-          {paused ? 'Play' : 'Pause'}
+          {t(paused ? 'play' : 'pause')}
         </button>
       </div>
       <div className="marquee-viewport">
@@ -458,14 +458,15 @@ function App() {
         role="switch"
         onClick={toggleBackgroundEffects}
         aria-checked={backgroundEffectsEnabled}
-        aria-label="Background animations"
+        aria-label={t('background_animations')}
+        lang={language}
       >
         <span className="matrix-switch-track" aria-hidden="true">
           <span className="matrix-switch-thumb" />
         </span>
         <span className="matrix-toggle-label" aria-hidden="true">
-          <span>Background FX</span>
-          <span>{backgroundEffectsEnabled ? 'On' : 'Off'}</span>
+          <LocalizedText i18nKey="background_fx" />
+          <LocalizedText i18nKey={backgroundEffectsEnabled ? 'on' : 'off'} />
         </span>
       </button>
 
@@ -537,15 +538,13 @@ function App() {
                 moveNavIndicator(navRef.current, event.currentTarget);
               }}
             >
-              <span data-i18n={`nav_${sectionId}`} lang={language}>
-                {t(`nav_${sectionId}`)}
-              </span>
+              <LocalizedText i18nKey={`nav_${sectionId}`} />
             </a>
           ))}
           <span className="nav-indicator" aria-hidden="true" />
         </nav>
         <a className="topbar-cta" href="mailto:surachetpan@hotmail.com">
-          Let&apos;s talk <ArrowIcon />
+          <LocalizedText i18nKey="top_lets_talk" /> <ArrowIcon />
         </a>
       </header>
 
@@ -554,50 +553,33 @@ function App() {
           <div className="hero-copy">
             <div className="availability" data-reveal>
               <span className="status-dot" />
-              Available for opportunities
+              <LocalizedText i18nKey="availability" />
             </div>
             <h1 data-reveal>
-              <span
+              <LocalizedText
                 className="hero-greeting"
-                data-i18n="hero_greeting"
-                lang={language}
-              >
-                {t('hero_greeting')}
-              </span>
+                i18nKey="hero_greeting"
+              />
               <span className="hero-name">Surachet</span>
               <span className="outline-text">Panto.</span>
             </h1>
-            <p
+            <LocalizedText
+              as="p"
               className="hero-subtitle"
               data-reveal
-              data-i18n="hero_subtitle"
-              lang={language}
-            >
-              {language === 'th' ? (
-                <>
-                  <span lang="en">Software Engineer</span>
-                  {' ที่เชี่ยวชาญด้าน '}
-                  <span lang="en">Enterprise Applications</span>
-                </>
-              ) : (
-                t('hero_subtitle')
-              )}
-            </p>
+              i18nKey="hero_subtitle"
+            />
             <div className="hero-actions" data-reveal>
               <a className="button button-primary" href="#projects">
-                <span data-i18n="view_projects" lang={language}>
-                  {t('view_projects')}
-                </span>{' '}
+                <LocalizedText i18nKey="view_projects" />{' '}
                 <ArrowIcon />
               </a>
               <a className="button button-secondary" href="#contact">
-                <span data-i18n="contact_btn" lang={language}>
-                  {t('contact_btn')}
-                </span>
+                <LocalizedText i18nKey="contact_btn" />
               </a>
             </div>
             <div className="social-links" data-reveal>
-              <span>Find me online</span>
+              <LocalizedText i18nKey="find_online" />
               <a
                 href="https://linkedin.com/in/surachet-panto"
                 target="_blank"
@@ -627,54 +609,59 @@ function App() {
           </div>
 
           <a className="scroll-cue" href="#about" aria-label="Scroll to about section">
-            <span>Scroll to explore</span>
+            <LocalizedText i18nKey="scroll_explore" />
             <span aria-hidden="true">↓</span>
           </a>
         </section>
 
         <section className="about section" id="about">
-          <SectionHeading number="01" eyebrow="About me" title="Engineering with purpose." />
+          <SectionHeading
+            number="01"
+            eyebrowKey="nav_about"
+            titleKey="about_title"
+          />
           <div className="about-grid">
-            <p className="about-lead" data-reveal>
-              I build <em>reliable systems</em> that keep businesses moving.
-            </p>
+            <LocalizedText
+              as="p"
+              className="about-lead"
+              data-reveal
+              i18nKey="about_lead"
+            />
             <div className="about-copy" data-reveal>
-              <p>
-                Software Engineer with experience developing enterprise applications using
-                Java, Oracle APEX, JavaScript, React, SQL, and PL/SQL.
-              </p>
-              <p>
-                Passionate about building reliable software, improving system performance,
-                and collaborating with cross-functional teams.
-              </p>
+              <LocalizedText as="p" i18nKey="about_p1" />
+              <LocalizedText as="p" i18nKey="about_p2" />
             </div>
           </div>
           <div className="stats" data-reveal>
-            <div><strong>3</strong><span>Professional roles</span></div>
-            <div><strong>15+</strong><span>Technologies &amp; tools</span></div>
-            <div><strong>3.62</strong><span>University GPA</span></div>
+            <div><strong>3</strong><LocalizedText i18nKey="stat_roles" /></div>
+            <div><strong>15+</strong><LocalizedText i18nKey="stat_tools" /></div>
+            <div><strong>3.62</strong><LocalizedText i18nKey="stat_gpa" /></div>
           </div>
         </section>
 
         <section className="experience section" id="experience">
-          <SectionHeading number="02" eyebrow="Experience" title="Where I've made an impact." />
+          <SectionHeading
+            number="02"
+            eyebrowKey="nav_experience"
+            titleKey="experience_title"
+          />
           <div className="timeline">
             {experiences.map((item, index) => (
               <article
                 className="timeline-item"
                 data-reveal
                 style={{ '--reveal-delay': `${index * 80}ms` }}
-                key={`${item.role}-${item.period}`}
+                key={`${item.roleKey}-${item.period}`}
               >
                 <div className="timeline-index">{String(index + 1).padStart(2, '0')}</div>
                 <div className="timeline-meta">
                   <p>{item.period}</p>
-                  {item.current && <span>Current</span>}
+                  {item.current && <LocalizedText i18nKey="current" />}
                 </div>
                 <div className="timeline-content">
-                  <h3>{item.role}</h3>
+                  <LocalizedText as="h3" i18nKey={item.roleKey} />
                   <h4>{item.company}</h4>
-                  <p>{item.description}</p>
+                  <LocalizedText as="p" i18nKey={item.descriptionKey} />
                 </div>
               </article>
             ))}
@@ -682,93 +669,104 @@ function App() {
         </section>
 
         <section className="education section" id="education">
-          <SectionHeading number="03" eyebrow="Education" title="A foundation built to solve." />
+          <SectionHeading
+            number="03"
+            eyebrowKey="education"
+            titleKey="education_title"
+          />
           <article className="education-card" data-reveal>
             <div className="education-monogram">PIM</div>
             <div>
-              <p className="card-kicker">Bachelor of Engineering</p>
-              <h3>Computer Engineering &amp; Artificial Intelligence</h3>
+              <LocalizedText as="p" className="card-kicker" i18nKey="degree" />
+              <LocalizedText as="h3" i18nKey="major" />
               <p>Panyapiwat Institute of Management</p>
             </div>
             <div className="education-achievement">
               <span>GPA</span>
               <strong>3.62</strong>
-              <p>Second-Class Honors</p>
+              <LocalizedText as="p" i18nKey="honors" />
             </div>
           </article>
         </section>
 
         <section className="skills section" id="skills">
-          <SectionHeading number="04" eyebrow="Technical skills" title="Tools I use to ship." />
+          <SectionHeading number="04" eyebrowKey="technical_skills" titleKey="skills_title" />
           <div className="skills-marquee">
-            <SkillMarquee label="Programming languages" items={programmingLanguages} />
-            <SkillMarquee label="Technologies & tools" items={tools} reverse />
+            <SkillMarquee labelKey="programming_languages" items={programmingLanguages} />
+            <SkillMarquee labelKey="technologies_tools" items={tools} reverse />
           </div>
         </section>
 
         <section className="projects section" id="projects">
-          <SectionHeading number="05" eyebrow="Featured project" title="Built beyond the brief." />
+          <SectionHeading number="05" eyebrowKey="featured_project" titleKey="project_title" />
           <article className="project-card" data-reveal>
             <ProjectVisual />
             <div className="project-copy">
-              <p className="card-kicker">AI · Computer vision</p>
-              <h3>Motorcycle Helmet Compliance Detection System</h3>
-              <p>
-                Developed an AI-powered detection system to identify motorcycle riders not
-                wearing helmets, connecting real-time computer vision with a production-ready
-                back end.
-              </p>
-              <div className="project-stack">
+              <LocalizedText as="p" className="card-kicker" i18nKey="project_category" />
+              <LocalizedText as="h3" i18nKey="project_name" />
+              <LocalizedText as="p" i18nKey="project_desc" />
+              <div className="project-stack" lang="en">
                 {['Python', 'YOLOv8', 'OpenCV', 'Spring Boot', 'PostgreSQL'].map((item) => (
                   <span key={item}>{item}</span>
                 ))}
               </div>
             </div>
           </article>
-          <nav className="portfolio-portals" aria-label="Explore portfolio views" data-reveal>
+          <nav
+            className="portfolio-portals"
+            aria-label={t('explore_portfolio_views')}
+            lang={language}
+            data-reveal
+          >
             <a href="/impact">
-              <span>01 // Data view</span>
-              <strong>Impact Dashboard</strong>
-              <small>Measured engineering outcomes</small>
+              <LocalizedText i18nKey="data_view" />
+              <LocalizedText as="strong" i18nKey="impact_title" />
+              <LocalizedText as="small" i18nKey="measured_outcomes" />
               <ArrowIcon />
             </a>
             <a href="/interview-me">
-              <span>02 // Interactive view</span>
-              <strong>Interview Terminal</strong>
-              <small>Ask about systems, automation, and delivery</small>
+              <LocalizedText i18nKey="interactive_view" />
+              <LocalizedText as="strong" i18nKey="interview_title" />
+              <LocalizedText as="small" i18nKey="ask_delivery" />
               <ArrowIcon />
             </a>
           </nav>
         </section>
 
         <section className="contact section" id="contact">
-          <p className="contact-kicker" data-reveal>Have a project or opportunity?</p>
-          <h2 data-reveal>Let&apos;s build something <span>reliable.</span></h2>
+          <LocalizedText as="p" className="contact-kicker" data-reveal i18nKey="contact_kicker" />
+          <LocalizedText as="h2" data-reveal i18nKey="contact_title" />
           <button
             className="contact-email"
             type="button"
             onClick={copyEmail}
             data-copy-state={copyState}
             data-reveal
-            aria-label={`Copy ${EMAIL} to clipboard`}
+            aria-label={`${t('copy_email')} ${EMAIL} ${t('to_clipboard')}`}
+            lang={language}
           >
-            <span className="copy-status" role="status" aria-live="polite">
+            <span
+              className="copy-status"
+              role="status"
+              aria-live="polite"
+              lang={copyState === 'idle' ? 'en' : language}
+            >
               {copyState === 'copied'
-                ? 'Copied! ✅'
+                ? t('copied')
                 : copyState === 'error'
-                  ? 'Copy failed — try again'
+                  ? t('copy_failed')
                   : EMAIL}
             </span>
             <ArrowIcon />
           </button>
           <div className="contact-details" data-reveal>
             <a href="tel:+66882822749">
-              <span>Phone</span>
+              <LocalizedText i18nKey="phone" />
               (+66) 88 282 2749
             </a>
             <div>
-              <span>Location</span>
-              Nonthaburi, Thailand
+              <LocalizedText i18nKey="location" />
+              <LocalizedText i18nKey="location_value" />
             </div>
             <div className="footer-socials">
               <a href="https://linkedin.com/in/surachet-panto" target="_blank" rel="noreferrer">
@@ -784,7 +782,7 @@ function App() {
 
       <footer>
         <a className="brand" href="#top">SP<span>.</span></a>
-        <p>Designed &amp; built by Surachet Panto</p>
+        <LocalizedText as="p" i18nKey="designed_by" />
         <p>© 2026</p>
       </footer>
     </div>

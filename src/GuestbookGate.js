@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import './GuestbookGate.css';
 import ViewSidebar from './ViewSidebar';
+import { LocalizedText, useLanguage } from './LanguageSystem';
 
 // Replace only "mdaqjdba" when switching to another Formspree form ID.
 export const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdaqjdba';
 
 export default function GuestbookGate() {
+  const { language, t } = useLanguage();
   const [visitorType, setVisitorType] = useState('visitor');
   const [submitState, setSubmitState] = useState('idle');
   const isMounted = useRef(true);
@@ -80,15 +82,12 @@ export default function GuestbookGate() {
             <span>NODE_01</span>
             <i />
           </div>
-          <p>Enterprise Builder // Review Terminal</p>
+          <LocalizedText as="p" i18nKey="review_eyebrow" />
           <h1 id="guestbook-title">
-            Leave a signal
-            <span>after exploring.</span>
+            <LocalizedText i18nKey="review_title_primary" />
+            <LocalizedText i18nKey="review_title_secondary" />
           </h1>
-          <p className="guestbook-description">
-            Thanks for exploring the portfolio. Share one useful observation
-            about the experience to help improve the next build.
-          </p>
+          <LocalizedText as="p" className="guestbook-description" i18nKey="review_desc" />
           <div className="guestbook-meta" aria-hidden="true">
             <span>ENCRYPTION: ACTIVE</span>
             <span>CHANNEL: HTTPS</span>
@@ -120,7 +119,7 @@ export default function GuestbookGate() {
             <input type="hidden" name="visitor_type" value={visitorType} />
 
             <fieldset className="guestbook-type">
-              <legend>Select visitor type</legend>
+              <LocalizedText as="legend" i18nKey="select_visitor" />
               <div>
                 <button
                   type="button"
@@ -128,7 +127,7 @@ export default function GuestbookGate() {
                   aria-pressed={visitorType === 'visitor'}
                   onClick={() => setVisitorType('visitor')}
                 >
-                  [ Visitor ]
+                  [ <LocalizedText i18nKey="visitor" /> ]
                 </button>
                 <button
                   type="button"
@@ -136,7 +135,7 @@ export default function GuestbookGate() {
                   aria-pressed={visitorType === 'recruiter'}
                   onClick={() => setVisitorType('recruiter')}
                 >
-                  [ HR / Recruiter ]
+                  [ <LocalizedText i18nKey="recruiter" /> ]
                 </button>
               </div>
             </fieldset>
@@ -144,34 +143,37 @@ export default function GuestbookGate() {
             <div className="guestbook-dynamic-fields" aria-live="polite">
               {visitorType === 'visitor' ? (
                 <label>
-                  <span>01 // Name</span>
+                  <span lang={language}>01 // {t('field_name')}</span>
                   <input
                     type="text"
+                    lang={language}
                     name="visitor_name"
                     autoComplete="name"
-                    placeholder="Enter your name"
+                    placeholder={t('placeholder_name')}
                     required
                   />
                 </label>
               ) : (
                 <>
                   <label>
-                    <span>01 // Company Name</span>
+                    <span lang={language}>01 // {t('field_company')}</span>
                     <input
                       type="text"
+                      lang={language}
                       name="company_name"
                       autoComplete="organization"
-                      placeholder="Enter company or organization"
+                      placeholder={t('placeholder_company')}
                       required
                     />
                   </label>
                   <label>
-                    <span>02 // Contact Info (Optional)</span>
+                    <span lang={language}>02 // {t('field_contact')}</span>
                     <input
                       type="text"
+                      lang={language}
                       name="contact_info"
                       autoComplete="email"
-                      placeholder="Email, LinkedIn, or phone"
+                      placeholder={t('placeholder_contact')}
                     />
                   </label>
                 </>
@@ -179,13 +181,14 @@ export default function GuestbookGate() {
             </div>
 
             <label className="guestbook-feedback">
-              <span>
-                {`${visitorType === 'visitor' ? '02' : '03'} // Website Feedback`}
+              <span lang={language}>
+                {`${visitorType === 'visitor' ? '02' : '03'} // ${t('field_feedback')}`}
               </span>
               <textarea
                 name="website_feedback"
+                lang={language}
                 rows="5"
-                placeholder="What should be added or improved on this website?"
+                placeholder={t('placeholder_feedback')}
                 required
               />
             </label>
@@ -196,14 +199,14 @@ export default function GuestbookGate() {
                 type="submit"
                 disabled={submitState === 'sending'}
               >
-                <span>
+                <span lang={language}>
                   {submitState === 'sending'
-                    ? '[ TRANSMITTING... ]'
-                    : '[ TRANSMIT DATA ]'}
+                    ? `[ ${t('transmitting')} ]`
+                    : `[ ${t('transmit')} ]`}
                 </span>
               </button>
               <a className="guestbook-skip" href="/">
-                Return to portfolio →
+                {t('return_portfolio')} →
               </a>
             </div>
 
@@ -211,12 +214,11 @@ export default function GuestbookGate() {
               className="guestbook-form-status"
               role="status"
               aria-live="polite"
+              lang={language}
             >
-              {submitState === 'sending' && 'Encrypting feedback payload...'}
-              {submitState === 'success' &&
-                'Transmission received. Thank you for the signal. ✓'}
-              {submitState === 'error' &&
-                'Transmission failed. Check your connection and try again.'}
+              {submitState === 'sending' && t('feedback_sending')}
+              {submitState === 'success' && t('feedback_success')}
+              {submitState === 'error' && t('feedback_error')}
             </p>
           </form>
         </div>

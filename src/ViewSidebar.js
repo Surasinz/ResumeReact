@@ -1,44 +1,47 @@
 import './ViewSidebar.css';
+import { LocalizedText, useLanguage } from './LanguageSystem';
 
 const sidebarLinks = [
   {
     id: 'review',
     href: '/review',
     code: 'REV',
-    label: 'Review This Website',
+    labelKey: 'sidebar_review',
   },
   {
     id: 'not-found',
     href: '/404',
     code: '404',
-    label: 'Page Payload Not Found',
+    labelKey: 'sidebar_404',
   },
   {
     id: 'impact',
     href: '/impact',
     code: 'IMP',
-    label: 'Impact Dashboard',
+    labelKey: 'sidebar_impact',
   },
   {
     id: 'interview',
     href: '/interview-me',
     code: 'Q&A',
-    label: 'Interactive Interview Terminal',
+    labelKey: 'sidebar_interview',
   },
   {
     id: 'components',
     href: '/components',
     code: 'UI',
-    label: 'Component Documentation',
+    labelKey: 'sidebar_components',
   },
 ];
 
 export default function ViewSidebar({ currentPage }) {
+  const { language, t } = useLanguage();
+
   return (
     <aside className="view-sidebar" aria-label="Portfolio page navigation">
       <div className="view-sidebar-title" aria-hidden="true">
         <span>SYS</span>
-        <b>Explore views</b>
+        <LocalizedText as="b" i18nKey="sidebar_explore" />
       </div>
       <nav>
         {sidebarLinks.map((item) => {
@@ -50,14 +53,15 @@ export default function ViewSidebar({ currentPage }) {
               href={item.href}
               key={item.id}
               aria-current={isCurrent ? 'page' : undefined}
-              aria-label={item.label}
-              title={item.label}
+              aria-label={t(item.labelKey)}
+              title={t(item.labelKey)}
+              lang={language}
             >
               <span className="view-sidebar-code" aria-hidden="true">
                 {item.code}
               </span>
               <span className="view-sidebar-label" aria-hidden="true">
-                {item.label}
+                <LocalizedText i18nKey={item.labelKey} />
               </span>
             </a>
           );
