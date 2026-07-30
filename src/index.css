@@ -1,5 +1,6 @@
 html {
-  background: #0a0a0d;
+  background: var(--ink, #ffffff);
+  transition: background-color 0.3s ease;
 }
 
 body {
@@ -9,11 +10,11 @@ body {
 }
 
 ::selection {
-  background: #c7ff35;
-  color: #0a0a0d;
+  background: var(--acid, #39ff14);
+  color: #0a0a0f;
 }
 
 :focus-visible {
-  outline: 2px solid #c7ff35;
+  outline: 2px solid var(--acid, #39ff14);
   outline-offset: 4px;
 }

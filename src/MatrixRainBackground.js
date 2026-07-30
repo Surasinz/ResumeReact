@@ -1,9 +1,16 @@
 import { useEffect, useRef } from 'react';
+import { useTheme } from './ThemeSystem';
 
 const CHARACTERS = '01{}[]<>/\\$#*+アイウエオカキクケコ';
 
 export default function MatrixRainBackground({ enabled }) {
   const canvasRef = useRef(null);
+  const { theme } = useTheme();
+  const rainColor = theme === 'dark' ? '#ff35a2' : '#39ff14';
+  const fadeColor =
+    theme === 'dark'
+      ? 'rgba(10, 10, 15, 0.12)'
+      : 'rgba(255, 255, 255, 0.12)';
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -40,9 +47,9 @@ export default function MatrixRainBackground({ enabled }) {
       if (timestamp - lastFrameTime < frameInterval) return;
       lastFrameTime = timestamp;
 
-      context.fillStyle = 'rgba(10, 10, 15, 0.12)';
+      context.fillStyle = fadeColor;
       context.fillRect(0, 0, window.innerWidth, window.innerHeight);
-      context.fillStyle = '#c6ff00';
+      context.fillStyle = rainColor;
       context.font = `600 ${fontSize}px monospace`;
 
       drops.forEach((drop, index) => {
@@ -67,12 +74,13 @@ export default function MatrixRainBackground({ enabled }) {
       window.removeEventListener('resize', resizeCanvas);
       context.clearRect(0, 0, canvas.width, canvas.height);
     };
-  }, [enabled]);
+  }, [enabled, fadeColor, rainColor]);
 
   return (
     <canvas
       ref={canvasRef}
       className={`matrix-background${enabled ? ' is-enabled' : ''}`}
+      data-rain-color={rainColor}
       aria-hidden="true"
     />
   );

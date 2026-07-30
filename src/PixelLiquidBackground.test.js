@@ -1,8 +1,10 @@
 import { act, render } from '@testing-library/react';
 import * as THREE from 'three';
 import PixelLiquidBackground, {
+  DARK_LIQUID_PALETTE,
   LIQUID_PALETTE,
 } from './PixelLiquidBackground';
+import { THEME_STORAGE_KEY, ThemeProvider } from './ThemeSystem';
 
 jest.mock('three', () => {
   const state = {
@@ -194,6 +196,7 @@ beforeEach(() => {
 
 afterEach(() => {
   jest.restoreAllMocks();
+  window.localStorage.clear();
   delete global.ResizeObserver;
 });
 
@@ -207,6 +210,7 @@ test('runs the supplied WebGL pipeline and disposes every GPU resource', () => {
   const renderer = state.renderers[0];
 
   expect(LIQUID_PALETTE.at(-1)).toBe('#39ff14');
+  expect(DARK_LIQUID_PALETTE.at(-1)).toBe('#ff35a2');
   expect(container.querySelector('.pixel-liquid-background canvas')).toBeInTheDocument();
   expect(renderer.options).toEqual({ antialias: false, alpha: true });
   const outputMaterial = state.materials.find((material) =>
@@ -258,6 +262,19 @@ test('degrades to the Matrix layer when WebGL renderer creation fails', () => {
 
   expect(container.querySelector('.pixel-liquid-background')).toBeInTheDocument();
   expect(container.querySelector('canvas')).not.toBeInTheDocument();
+});
+
+test('builds the WebGL palette with the dark pink accent', () => {
+  window.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+
+  render(
+    <ThemeProvider>
+      <PixelLiquidBackground enabled />
+    </ThemeProvider>
+  );
+
+  const paletteData = THREE.__mockState.textures[0].image.data;
+  expect(Array.from(paletteData.slice(-4))).toEqual([255, 53, 162, 255]);
 });
 
 test('does not start GPU passes until a hidden tab becomes visible', () => {

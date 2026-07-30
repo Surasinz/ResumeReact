@@ -3,6 +3,7 @@ import ComponentDocsPage from './ComponentDocsPage';
 import { ImpactPage, InterviewPage } from './CyberPages';
 import GuestbookGate from './GuestbookGate';
 import NotFoundPage from './NotFoundPage';
+import { ThemeProvider, ThemeToggle } from './ThemeSystem';
 
 export function resolvePage(pathname) {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/';
@@ -16,5 +17,10 @@ export function resolvePage(pathname) {
 }
 
 export default function SiteRouter() {
-  return resolvePage(window.location.pathname);
+  return (
+    <ThemeProvider>
+      <ThemeToggle />
+      {resolvePage(window.location.pathname)}
+    </ThemeProvider>
+  );
 }

@@ -5,7 +5,7 @@
     linear-gradient(rgba(117, 216, 255, 0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(117, 216, 255, 0.025) 1px, transparent 1px),
     radial-gradient(circle at 82% 4%, rgba(117, 216, 255, 0.12), transparent 30rem),
-    radial-gradient(circle at 12% 48%, rgba(199, 255, 53, 0.07), transparent 25rem),
+    radial-gradient(circle at 12% 48%, rgba(var(--acid-rgb), 0.07), transparent 25rem),
     #08090d;
   background-size: 54px 54px, 54px 54px, auto, auto, auto;
   color: var(--paper);
@@ -109,10 +109,10 @@
 .cyber-intro-code {
   width: max-content;
   margin-bottom: clamp(2.5rem, 7vh, 5rem);
-  border: 1px solid rgba(199, 255, 53, 0.3);
+  border: 1px solid rgba(var(--acid-rgb), 0.3);
   padding: 0.45rem 0.7rem;
-  background: rgba(199, 255, 53, 0.05);
-  color: var(--acid);
+  background: rgba(var(--acid-rgb), 0.05);
+  color: var(--accent-text);
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 0.68rem;
   letter-spacing: 0.12em;
@@ -182,8 +182,8 @@
   display: grid;
   width: 38px;
   height: 38px;
-  border: 1px solid rgba(199, 255, 53, 0.35);
-  color: var(--acid);
+  border: 1px solid rgba(var(--acid-rgb), 0.35);
+  color: var(--accent-text);
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 0.68rem;
   place-items: center;
@@ -275,12 +275,12 @@
 .impact-metric {
   display: block;
   margin-bottom: 1.5rem;
-  color: var(--acid);
+  color: var(--accent-text);
   font-size: clamp(3.4rem, 7vw, 6.3rem);
   font-variant-numeric: tabular-nums;
   line-height: 0.9;
   letter-spacing: -0.075em;
-  text-shadow: 0 0 24px rgba(199, 255, 53, 0.12);
+  text-shadow: 0 0 24px rgba(var(--acid-rgb), 0.12);
 }
 
 .impact-metric em {
@@ -330,14 +330,14 @@
 }
 
 .cyber-next-view b {
-  color: var(--acid);
+  color: var(--accent-text);
   font-size: 0.8em;
 }
 
 .cyber-next-view:hover,
 .cyber-next-view:focus-visible {
   padding-inline: 1rem;
-  color: var(--acid);
+  color: var(--accent-text);
 }
 
 .interview-terminal {
@@ -375,7 +375,7 @@
 
 .terminal-bar > div span:first-child {
   background: var(--acid);
-  box-shadow: 0 0 8px rgba(199, 255, 53, 0.65);
+  box-shadow: 0 0 8px rgba(var(--acid-rgb), 0.65);
 }
 
 .terminal-bar p,
@@ -389,7 +389,7 @@
 
 .terminal-bar > span {
   justify-self: end;
-  color: var(--acid);
+  color: var(--accent-text);
 }
 
 .terminal-layout {
@@ -443,14 +443,14 @@
 .terminal-prompts button:hover,
 .terminal-prompts button:focus-visible,
 .terminal-prompts button.is-selected {
-  border-color: rgba(199, 255, 53, 0.55);
-  background: rgba(199, 255, 53, 0.065);
+  border-color: rgba(var(--acid-rgb), 0.55);
+  background: rgba(var(--acid-rgb), 0.065);
   color: var(--paper);
   transform: translateX(4px);
 }
 
 .terminal-prompts button.is-selected span {
-  color: var(--acid);
+  color: var(--accent-text);
 }
 
 .terminal-output {
@@ -472,7 +472,7 @@
 }
 
 .terminal-command span {
-  color: var(--acid);
+  color: var(--accent-text);
 }
 
 .terminal-answer {
@@ -497,7 +497,7 @@
   height: 1.15em;
   margin-left: 0.2em;
   background: var(--acid);
-  box-shadow: 0 0 10px rgba(199, 255, 53, 0.65);
+  box-shadow: 0 0 10px rgba(var(--acid-rgb), 0.65);
   vertical-align: -0.18em;
   animation: terminal-blink 0.85s step-end infinite;
 }
@@ -536,7 +536,7 @@
 
 .cyber-footer > a:last-child {
   justify-self: end;
-  color: var(--acid);
+  color: var(--accent-text);
 }
 
 .sr-only {

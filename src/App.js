@@ -4,6 +4,7 @@ import MatrixRainBackground from './MatrixRainBackground';
 import PixelLiquidBackground from './PixelLiquidBackground';
 import WebShimeji from './shimeji/WebShimeji';
 import ViewSidebar from './ViewSidebar';
+import { useTheme } from './ThemeSystem';
 
 const EMAIL = 'surachetpan@hotmail.com';
 const BACKGROUND_EFFECTS_PREFERENCE_KEY = 'surachet-background-effects-animation';
@@ -170,6 +171,8 @@ function ProjectVisual() {
 
 function AvatarSpotlight() {
   const frameRef = useRef(null);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const handleMouseMove = (event) => {
     const frame = frameRef.current;
@@ -201,7 +204,7 @@ function AvatarSpotlight() {
     >
       <img
         className="avatar-image avatar-image-default"
-        src={`${process.env.PUBLIC_URL}/surachet-avatar.webp`}
+        src={`${process.env.PUBLIC_URL}/${isDark ? 'surachet-avatar.webp' : 'surachet-avatar-light.webp'}`}
         alt="3D streetwear avatar of Surachet Panto"
         width="928"
         height="960"
@@ -211,7 +214,7 @@ function AvatarSpotlight() {
       />
       <img
         className="avatar-image avatar-image-reveal"
-        src={`${process.env.PUBLIC_URL}/avatar-formal.webp`}
+        src={`${process.env.PUBLIC_URL}/${isDark ? 'avatar-formal.webp' : 'avatar-formal-light.webp'}`}
         alt=""
         aria-hidden="true"
         width="928"

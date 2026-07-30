@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { useTheme } from './ThemeSystem';
 
 export const LIQUID_PALETTE = [
   '#000000',
@@ -7,6 +8,14 @@ export const LIQUID_PALETTE = [
   '#0b4515',
   '#159c29',
   '#39ff14',
+];
+
+export const DARK_LIQUID_PALETTE = [
+  '#000000',
+  '#190713',
+  '#521034',
+  '#a91f68',
+  '#ff35a2',
 ];
 
 const faceVert = `
@@ -529,6 +538,7 @@ class FluidSimulation {
 
 export default function PixelLiquidBackground({ enabled }) {
   const mountRef = useRef(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     const container = mountRef.current;
@@ -551,7 +561,9 @@ export default function PixelLiquidBackground({ enabled }) {
 
     const mouse = new MouseGL();
     mouse.init(container);
-    const palette = makePaletteTexture(LIQUID_PALETTE);
+    const palette = makePaletteTexture(
+      theme === 'dark' ? DARK_LIQUID_PALETTE : LIQUID_PALETTE
+    );
     const simulation = new FluidSimulation(gl, mouse);
     const outputUniforms = {
       velocity: { value: simulation.fbos.vel0.texture },
@@ -626,7 +638,7 @@ export default function PixelLiquidBackground({ enabled }) {
       gl.renderer?.dispose();
       canvas?.remove();
     };
-  }, [enabled]);
+  }, [enabled, theme]);
 
   return (
     <div

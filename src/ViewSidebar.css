@@ -22,10 +22,10 @@ aside.view-sidebar {
 .view-sidebar:hover,
 .view-sidebar:focus-within {
   width: 286px;
-  border-color: rgba(199, 255, 53, 0.42);
+  border-color: rgba(var(--acid-rgb), 0.42);
   box-shadow:
     0 22px 58px rgba(0, 0, 0, 0.5),
-    0 0 28px rgba(199, 255, 53, 0.06);
+    0 0 28px rgba(var(--acid-rgb), 0.06);
 }
 
 .view-sidebar-title {
@@ -95,7 +95,7 @@ aside.view-sidebar {
   left: -1px;
   width: 2px;
   background: var(--acid);
-  box-shadow: 0 0 9px rgba(199, 255, 53, 0.8);
+  box-shadow: 0 0 9px rgba(var(--acid-rgb), 0.8);
   content: '';
   opacity: 0;
   transform: scaleY(0.4);
@@ -126,8 +126,8 @@ aside.view-sidebar {
 }
 
 .view-sidebar nav a.is-current .view-sidebar-code {
-  color: var(--acid);
-  text-shadow: 0 0 10px rgba(199, 255, 53, 0.5);
+  color: var(--accent-text);
+  text-shadow: 0 0 10px rgba(var(--acid-rgb), 0.5);
 }
 
 .view-sidebar-label {
@@ -150,7 +150,7 @@ aside.view-sidebar {
   display: block;
   height: 26px;
   border-top: 1px solid rgba(117, 216, 255, 0.1);
-  color: rgba(199, 255, 53, 0.66);
+  color: rgba(var(--acid-rgb), 0.66);
   font-size: 0.5rem;
   letter-spacing: 0.08em;
   line-height: 26px;

@@ -20,7 +20,7 @@
   cursor: grabbing;
   filter:
     drop-shadow(0 14px 12px rgba(0, 0, 0, 0.5))
-    drop-shadow(0 0 9px rgba(199, 255, 53, 0.25));
+    drop-shadow(0 0 9px rgba(var(--acid-rgb), 0.25));
 }
 
 @media (prefers-reduced-motion: reduce) {

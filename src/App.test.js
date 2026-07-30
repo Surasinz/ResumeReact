@@ -217,8 +217,8 @@ test('tracks the pointer position across the avatar spotlight', () => {
   const defaultImage = spotlight.querySelector('.avatar-image-default');
   const revealImage = spotlight.querySelector('.avatar-image-reveal');
 
-  expect(defaultImage).toHaveAttribute('src', '/surachet-avatar.webp');
-  expect(revealImage).toHaveAttribute('src', '/avatar-formal.webp');
+  expect(defaultImage).toHaveAttribute('src', '/surachet-avatar-light.webp');
+  expect(revealImage).toHaveAttribute('src', '/avatar-formal-light.webp');
   expect(within(spotlight).getByText(/Enterprise builder/i)).toBeInTheDocument();
   expect(within(spotlight).getByText(/Nonthaburi, TH/i)).toBeInTheDocument();
 

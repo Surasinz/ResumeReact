@@ -1,8 +1,10 @@
 import { render } from '@testing-library/react';
 import MatrixRainBackground from './MatrixRainBackground';
+import { THEME_STORAGE_KEY, ThemeProvider } from './ThemeSystem';
 
 afterEach(() => {
   jest.restoreAllMocks();
+  window.localStorage.clear();
 });
 
 test('starts Matrix Rain and releases its own RAF and resize listener', () => {
@@ -32,4 +34,22 @@ test('starts Matrix Rain and releases its own RAF and resize listener', () => {
   unmount();
   expect(window.cancelAnimationFrame).toHaveBeenCalledWith(13);
   expect(removeEventListener).toHaveBeenCalledWith('resize', expect.any(Function));
+});
+
+test.each([
+  ['light', '#39ff14'],
+  ['dark', '#ff35a2'],
+])('adapts rain color to the %s theme', (theme, expectedColor) => {
+  window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+
+  const { container } = render(
+    <ThemeProvider>
+      <MatrixRainBackground enabled={false} />
+    </ThemeProvider>
+  );
+
+  expect(container.querySelector('canvas')).toHaveAttribute(
+    'data-rain-color',
+    expectedColor
+  );
 });

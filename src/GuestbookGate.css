@@ -6,7 +6,7 @@
   min-height: 100dvh;
   overflow-x: clip;
   background:
-    radial-gradient(circle at 16% 22%, rgba(199, 255, 53, 0.08), transparent 24rem),
+    radial-gradient(circle at 16% 22%, rgba(var(--acid-rgb), 0.08), transparent 24rem),
     radial-gradient(circle at 82% 76%, rgba(117, 216, 255, 0.1), transparent 28rem),
     linear-gradient(rgba(117, 216, 255, 0.028) 1px, transparent 1px),
     linear-gradient(90deg, rgba(117, 216, 255, 0.028) 1px, transparent 1px),
@@ -90,10 +90,10 @@
   align-items: center;
   width: max-content;
   margin-bottom: clamp(2rem, 6vh, 4rem);
-  border: 1px solid rgba(199, 255, 53, 0.3);
+  border: 1px solid rgba(var(--acid-rgb), 0.3);
   padding: 0.48rem 0.7rem;
-  background: rgba(199, 255, 53, 0.045);
-  color: var(--acid);
+  background: rgba(var(--acid-rgb), 0.045);
+  color: var(--accent-text);
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 0.62rem;
   letter-spacing: 0.12em;
@@ -104,7 +104,7 @@
   height: 7px;
   border-radius: 50%;
   background: var(--acid);
-  box-shadow: 0 0 10px rgba(199, 255, 53, 0.8);
+  box-shadow: 0 0 10px rgba(var(--acid-rgb), 0.8);
   animation: guestbook-node-pulse 1.8s ease-in-out infinite;
 }
 
@@ -183,7 +183,7 @@
 
 .guestbook-terminal-bar > div span:first-child {
   background: var(--acid);
-  box-shadow: 0 0 8px rgba(199, 255, 53, 0.72);
+  box-shadow: 0 0 8px rgba(var(--acid-rgb), 0.72);
 }
 
 .guestbook-terminal-bar p,
@@ -198,7 +198,7 @@
 
 .guestbook-terminal-bar b {
   justify-self: end;
-  color: rgba(199, 255, 53, 0.55);
+  color: rgba(var(--acid-rgb), 0.55);
 }
 
 .guestbook-terminal form {
@@ -250,10 +250,10 @@
 .guestbook-type button:hover,
 .guestbook-type button:focus-visible,
 .guestbook-type button.is-active {
-  border-color: rgba(199, 255, 53, 0.65);
-  background: rgba(199, 255, 53, 0.07);
-  box-shadow: inset 0 0 18px rgba(199, 255, 53, 0.035);
-  color: var(--acid);
+  border-color: rgba(var(--acid-rgb), 0.65);
+  background: rgba(var(--acid-rgb), 0.07);
+  box-shadow: inset 0 0 18px rgba(var(--acid-rgb), 0.035);
+  color: var(--accent-text);
 }
 
 .guestbook-dynamic-fields {
@@ -298,9 +298,9 @@
 .guestbook-terminal input:focus,
 .guestbook-terminal textarea:focus {
   border-bottom-color: var(--acid);
-  box-shadow: 0 8px 14px -12px rgba(199, 255, 53, 0.95);
-  color: var(--acid);
-  text-shadow: 0 0 10px rgba(199, 255, 53, 0.15);
+  box-shadow: 0 8px 14px -12px rgba(var(--acid-rgb), 0.95);
+  color: var(--accent-text);
+  text-shadow: 0 0 10px rgba(var(--acid-rgb), 0.15);
 }
 
 .guestbook-actions {
@@ -322,12 +322,12 @@
   z-index: 0;
   overflow: hidden;
   border: 1px solid var(--acid);
-  background: rgba(199, 255, 53, 0.035);
-  color: var(--acid);
+  background: rgba(var(--acid-rgb), 0.035);
+  color: var(--accent-text);
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  box-shadow: 0 0 20px rgba(199, 255, 53, 0.07);
+  box-shadow: 0 0 20px rgba(var(--acid-rgb), 0.07);
   transition: color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
 }
 
@@ -343,8 +343,8 @@
 
 .guestbook-submit:hover:not(:disabled),
 .guestbook-submit:focus-visible:not(:disabled) {
-  color: var(--ink);
-  box-shadow: 0 0 30px rgba(199, 255, 53, 0.32);
+  color: var(--on-accent);
+  box-shadow: 0 0 30px rgba(var(--acid-rgb), 0.32);
   transform: translateY(-2px);
 }
 
