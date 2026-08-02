@@ -211,7 +211,7 @@
   line-height: 1.65;
 }
 
-.docs-hero > div span {
+.docs-hero > div > span {
   color: rgba(244, 241, 234, 0.45);
   font-family: "SFMono-Regular", Consolas, monospace;
   font-size: 0.62rem;
@@ -272,7 +272,7 @@
   margin-bottom: 1.1rem;
 }
 
-.docs-block > header span {
+.docs-block > header > span {
   color: var(--docs-accent-text);
   font-size: 0.62rem;
 }

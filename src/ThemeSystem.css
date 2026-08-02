@@ -228,7 +228,7 @@ body[data-theme='light'] .docs-sidebar {
 
 body[data-theme='light'] .docs-sidebar nav > p,
 body[data-theme='light'] .docs-sidebar-footer span,
-body[data-theme='light'] .docs-hero > div span,
+body[data-theme='light'] .docs-hero > div > span,
 body[data-theme='light'] .docs-terminal-form small,
 body[data-theme='light'] .docs-page-footer {
   color: var(--docs-muted);
