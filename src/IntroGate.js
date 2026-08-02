@@ -68,9 +68,15 @@ function CameraRig({ phase, endZ, still }) {
       // Expressed as fractions of the settle distance, so the wander stays
       // in proportion to whatever room is loaded rather than to numbers
       // tuned against one particular set.
+      /*
+        Aimed low and slightly off-centre. The panel sits high in the room,
+        so levelling the camera on it puts the ceiling gap in shot; these
+        were picked by sweeping poses and measuring how much of the frame
+        fell outside the geometry.
+      */
       if (still) {
-        camera.position.set(endZ * 0.22, endZ * 0.08, endZ * 1.2);
-        lookRef.current = [0, -endZ * 0.05, -endZ * 0.2];
+        camera.position.set(0, -endZ * 0.06, endZ * 1.14);
+        lookRef.current = [-endZ * 0.18, -endZ * 0.18, -endZ * 0.2];
         camera.lookAt(...lookRef.current);
         return;
       }
@@ -78,13 +84,13 @@ function CameraRig({ phase, endZ, still }) {
       // A long, slow wander with three different periods, so the loop never
       // lands back on the same pose and never reads as a repeat.
       camera.position.set(
-        Math.sin(time * 0.13) * endZ * 0.34,
-        endZ * 0.09 + Math.sin(time * 0.1) * endZ * 0.07,
-        endZ * 1.14 + Math.sin(time * 0.07) * endZ * 0.07
+        Math.sin(time * 0.13) * endZ * 0.2,
+        -endZ * 0.06 + Math.sin(time * 0.1) * endZ * 0.04,
+        endZ * 1.14 + Math.sin(time * 0.07) * endZ * 0.06
       );
       lookRef.current = [
-        Math.sin(time * 0.11) * endZ * 0.2,
-        -endZ * 0.05,
+        -endZ * 0.18 + Math.sin(time * 0.11) * endZ * 0.12,
+        -endZ * 0.18,
         -endZ * 0.2,
       ];
       camera.lookAt(...lookRef.current);
@@ -245,10 +251,14 @@ function Scene({ accent, palette, phase, still, endZ, onMeasured }) {
       rather than by driving the model's own material. The room is somebody
       else's asset, so keying the effect to a material name in it would break
       the moment that asset is swapped.
+
+      It stays low while the visitor is looking around: the room's textures
+      carry the colour, and a strong tinted lamp on top of them washes the
+      whole set to one hue.
     */
     if (glowRef.current) {
       const target =
-        phase === 'brighten' ? 14 : phase === 'loading' ? 7 : palette.screen;
+        phase === 'brighten' ? 9 : phase === 'loading' ? 4 : palette.screen;
       glowRef.current.intensity +=
         (target - glowRef.current.intensity) * ease;
     }
@@ -257,15 +267,29 @@ function Scene({ accent, palette, phase, still, endZ, onMeasured }) {
   return (
     <>
       <CameraRig phase={phase} endZ={endZ} still={still} />
+      {/*
+        The room is not a sealed box -- it has an open side and gaps at the
+        ceiling -- so some poses see straight past the geometry. With a
+        transparent canvas those gaps showed the page behind, reading as
+        black holes punched in the set. An opaque background plus fog turns
+        them into depth instead.
+      */}
+      <color attach="background" args={[palette.backdrop]} />
+      <fog attach="fog" args={[palette.backdrop, endZ * 1.1, endZ * 3.4]} />
+      {/*
+        Neutral white. The room carries its own colour in its textures, so a
+        tinted key light only pushes the whole set toward one hue.
+      */}
       <ambientLight ref={ambientRef} intensity={palette.ambient} />
-      <directionalLight ref={keyRef} position={[2, 4, 6]} intensity={palette.key} />
-      <directionalLight position={[-5, 1, 2]} intensity={0.3} />
+      <directionalLight ref={keyRef} position={[1.5, 2.5, 3]} intensity={palette.key} />
+      <directionalLight position={[-2.5, 1, 1.5]} intensity={0.35} />
+      {/* Reach kept short so the accent stays a glow off the panel. */}
       <pointLight
         ref={glowRef}
-        position={[0, 0, 1.1]}
+        position={[0, 0, 0.6]}
         intensity={palette.screen}
         color={accent}
-        distance={12}
+        distance={3.5}
       />
 
       <Suspense fallback={null}>
@@ -383,8 +407,8 @@ export default function IntroGate({ onEnter }) {
   const accent = isDark ? '#ff35a2' : '#39ff14';
   // The room brings its own materials, so only the lighting is themed.
   const palette = isDark
-    ? { ambient: 0.55, key: 0.7, screen: 3 }
-    : { ambient: 1.1, key: 1.15, screen: 1.8 };
+    ? { ambient: 0.9, key: 1.1, screen: 0.5, backdrop: '#140f1d' }
+    : { ambient: 1.5, key: 1.5, screen: 0.35, backdrop: '#dedbe6' };
 
   return (
     <div
