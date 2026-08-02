@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import App from './App';
 import Atmosphere from './Atmosphere';
 import ComponentDocsPage from './ComponentDocsPage';
+import IntroGate, { hasSeenIntro, markIntroSeen } from './IntroGate';
 import { ImpactPage, InterviewPage } from './CyberPages';
 import GuestbookGate from './GuestbookGate';
 import NotFoundPage from './NotFoundPage';
@@ -9,6 +11,10 @@ import {
   LanguageProvider,
   LanguageToggle,
 } from './LanguageSystem';
+
+export function isHomePath(pathname) {
+  return (pathname.replace(/\/+$/, '') || '/') === '/';
+}
 
 export function resolvePage(pathname) {
   const normalizedPath = pathname.replace(/\/+$/, '') || '/';
@@ -19,6 +25,27 @@ export function resolvePage(pathname) {
   if (normalizedPath === '/review') return <GuestbookGate />;
   if (normalizedPath === '/') return <App />;
   return <NotFoundPage />;
+}
+
+/*
+  The intro only fronts the home page, and only once per browser session.
+  Deep links to /impact or /components are never interrupted, and coming back
+  to the portfolio from one of them does not replay the sequence -- the
+  visitor already watched it.
+*/
+function HomeWithIntro() {
+  const [introDone, setIntroDone] = useState(hasSeenIntro);
+
+  if (introDone) return <App />;
+
+  return (
+    <IntroGate
+      onEnter={() => {
+        markIntroSeen();
+        setIntroDone(true);
+      }}
+    />
+  );
 }
 
 function SiteCursorScope({ children }) {
@@ -46,7 +73,11 @@ export default function SiteRouter() {
         <ThemeToggle />
         <LanguageToggle />
         <SiteCursorScope>
-          {resolvePage(window.location.pathname)}
+          {isHomePath(window.location.pathname) ? (
+            <HomeWithIntro />
+          ) : (
+            resolvePage(window.location.pathname)
+          )}
         </SiteCursorScope>
       </LanguageProvider>
     </ThemeProvider>

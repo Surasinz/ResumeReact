@@ -219,6 +219,9 @@ export const translations = {
     docs_helmet_prompt:
       'Load a .glb model into a react-three-fiber canvas. Centre it automatically, derive its scale from the bounding box the renderer reports rather than the raw file values, light it with a hemisphere plus two directional lights, and allow drag-to-rotate while disabling zoom and pan.',
     docs_helmet_hint: 'Drag to rotate // Zoom and pan disabled',
+    intro_next: 'Enter Portfolio',
+    intro_skip: 'Skip intro',
+    intro_enter: 'Enter the portfolio',
     docs_move_cursor: 'Move cursor // Reveal layer',
     docs_callsign: 'Callsign',
     docs_message: 'Message',
@@ -446,6 +449,9 @@ export const translations = {
     docs_helmet_prompt:
       'โหลดโมเดล .glb เข้า react-three-fiber Canvas จัดกึ่งกลางอัตโนมัติ คำนวณ Scale จาก Bounding Box ที่ Renderer รายงานจริงแทนค่าดิบในไฟล์ จัดแสงด้วย Hemisphere Light และ Directional Light สองดวง และให้ลากเพื่อหมุนได้ แต่ปิด Zoom กับ Pan',
     docs_helmet_hint: 'ลากเพื่อหมุน // ปิด Zoom และ Pan',
+    intro_next: 'เข้าสู่ Portfolio',
+    intro_skip: 'ข้ามอินโทร',
+    intro_enter: 'เข้าสู่หน้า Portfolio',
     docs_move_cursor: 'เลื่อน Cursor // Reveal Layer',
     docs_callsign: 'ชื่อเรียก',
     docs_message: 'ข้อความ',

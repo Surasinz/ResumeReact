@@ -1,0 +1,124 @@
+/*
+  Below the theme and language switches (z 90) so both stay usable during the
+  intro, and below the grain (z 95) so the texture carries across it too.
+*/
+.intro-gate {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(var(--acid-rgb), 0.08), transparent 22rem),
+    linear-gradient(var(--theme-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--theme-grid) 1px, transparent 1px),
+    var(--ink);
+  background-size: auto, 64px 64px, 64px 64px, auto;
+}
+
+.intro-stage {
+  position: absolute;
+  inset: 0;
+}
+
+.intro-eyebrow {
+  position: absolute;
+  top: clamp(1.5rem, 5vh, 3rem);
+  left: 50%;
+  margin: 0;
+  transform: translateX(-50%);
+  color: var(--paper-muted);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/*
+  The monitor is built with its screen centred on the world origin and the
+  camera dead-on, so the panel always projects to the exact centre of the
+  canvas. That is what lets this sit on the screen without tracking anything.
+  --intro-fit mirrors the scale the monitor was given to fit the viewport, so
+  the control shrinks with the machine instead of bursting out of the panel
+  on a narrow window.
+*/
+.intro-screen-ui {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 600ms ease;
+  pointer-events: none;
+}
+
+.intro-gate[data-ready='true'] .intro-screen-ui {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/*
+  Only the padding follows --intro-fit. Scaling the type with it too drove
+  the label down to a few pixels on a phone, and the whole control under the
+  44px minimum tap target -- so size is floored independently of how far the
+  machine had to shrink to fit.
+*/
+.intro-next {
+  display: inline-flex;
+  gap: 0.7em;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  border: 1px solid var(--acid);
+  padding: 0.85em calc(1.1em + 0.6em * var(--intro-fit, 1));
+  background: transparent;
+  color: var(--acid);
+  font: inherit;
+  font-size: clamp(0.68rem, 2.2vw, 0.78rem);
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transition: background 220ms ease, color 220ms ease, box-shadow 220ms ease;
+}
+
+.intro-next:hover,
+.intro-next:focus-visible {
+  background: var(--acid);
+  color: var(--on-accent);
+  box-shadow: 0 0 30px rgba(var(--acid-rgb), 0.35);
+}
+
+/*
+  Available from the first frame, not gated on the assembly finishing, so the
+  intro can always be left immediately.
+*/
+.intro-skip {
+  position: absolute;
+  right: clamp(1rem, 4vw, 2.5rem);
+  bottom: clamp(1rem, 4vh, 2.5rem);
+  border: 0;
+  padding: 0.6rem 0.2rem;
+  background: transparent;
+  color: var(--paper-muted);
+  font: inherit;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: color 200ms ease;
+}
+
+.intro-skip:hover,
+.intro-skip:focus-visible {
+  color: var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-screen-ui {
+    transition-duration: 0.01ms;
+  }
+}
