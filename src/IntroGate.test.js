@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import IntroGate, {
   INTRO_SESSION_KEY,
+  READY_SECONDS,
   hasSeenIntro,
   markIntroSeen,
 } from './IntroGate';
@@ -56,7 +57,7 @@ test('reveals the entry control on a timer rather than from the render loop', ()
   expect(gate).toHaveAttribute('data-ready', 'false');
 
   act(() => {
-    jest.advanceTimersByTime(4000);
+    jest.advanceTimersByTime(READY_SECONDS * 1000 + 100);
   });
 
   // ...and shown purely on elapsed time, so a stalled or absent WebGL
@@ -74,7 +75,7 @@ test('offers a way out from the first frame, before the machine is built', () =>
 test('enters the portfolio from the screen control', () => {
   const { onEnter } = renderGate();
   act(() => {
-    jest.advanceTimersByTime(4000);
+    jest.advanceTimersByTime(READY_SECONDS * 1000 + 100);
   });
 
   fireEvent.click(screen.getByRole('button', { name: 'Enter the portfolio' }));

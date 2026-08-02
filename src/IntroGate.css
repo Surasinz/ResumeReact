@@ -20,21 +20,6 @@
   inset: 0;
 }
 
-.intro-eyebrow {
-  position: absolute;
-  top: clamp(1.5rem, 5vh, 3rem);
-  left: 50%;
-  margin: 0;
-  transform: translateX(-50%);
-  color: var(--paper-muted);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.32em;
-  text-align: center;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 /*
   The monitor is built with its screen centred on the world origin and the
   camera dead-on, so the panel always projects to the exact centre of the
@@ -48,11 +33,37 @@
   top: 50%;
   left: 50%;
   display: grid;
+  gap: calc(0.5rem * var(--intro-fit, 1));
   place-items: center;
   transform: translate(-50%, -50%);
   opacity: 0;
   transition: opacity 600ms ease;
   pointer-events: none;
+}
+
+.intro-screen-title,
+.intro-screen-sub {
+  margin: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.intro-screen-title {
+  color: var(--paper);
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-size: calc(clamp(1.4rem, 4.6vw, 2.6rem) * var(--intro-fit, 1));
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.intro-screen-sub {
+  margin-bottom: calc(0.6rem * var(--intro-fit, 1));
+  color: var(--paper-muted);
+  font-size: calc(clamp(0.5rem, 1.5vw, 0.62rem) * var(--intro-fit, 1));
+  font-weight: 700;
+  letter-spacing: 0.3em;
 }
 
 .intro-gate[data-ready='true'] .intro-screen-ui {
