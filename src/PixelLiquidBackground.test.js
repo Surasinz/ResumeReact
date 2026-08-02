@@ -212,9 +212,21 @@ test('runs the supplied WebGL pipeline and disposes every GPU resource', () => {
   // The light ramp resolves into white so calm fluid disappears into the
   // page rather than greying it; only the dark ramp bottoms out at black.
   expect(LIQUID_PALETTE.at(0)).toBe('#ffffff');
-  expect(LIQUID_PALETTE.at(-1)).toBe('#46ad2c');
   expect(DARK_LIQUID_PALETTE.at(0)).toBe('#000000');
   expect(DARK_LIQUID_PALETTE.at(-1)).toBe('#ff35a2');
+
+  // Assert the property that actually matters rather than an exact hex, so
+  // the ramp stays tunable. Every light stop has to stay *pale*: it is a
+  // fully-opaque fill at the swirl cores, so any stop that lets a channel
+  // drop away turns into a saturated blob on paper. Note luminance is the
+  // wrong guard here -- the neon #39ff14 this replaced scores 0.66, about
+  // the same as the soft green that looks right, because green dominates
+  // that formula. The darkest channel separates them cleanly (20 vs 138).
+  const darkestChannel = (hex) =>
+    Math.min(...[1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)));
+  LIQUID_PALETTE.forEach((stop) => {
+    expect(darkestChannel(stop)).toBeGreaterThan(120);
+  });
   expect(container.querySelector('.pixel-liquid-background canvas')).toBeInTheDocument();
   expect(renderer.options).toEqual({ antialias: false, alpha: true });
   const outputMaterial = state.materials.find((material) =>

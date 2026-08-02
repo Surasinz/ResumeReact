@@ -65,7 +65,7 @@ body[data-theme='light'] .matrix-background.is-enabled {
   attention and the page stops looking composed.
 */
 body[data-theme='light'] .pixel-liquid-background.is-enabled {
-  opacity: 0.5;
+  opacity: 0.32;
 }
 
 body[data-theme='light'] .topbar.is-scrolled,

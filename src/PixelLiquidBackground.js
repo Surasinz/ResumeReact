@@ -7,10 +7,10 @@ import { useTheme } from './ThemeSystem';
 // resolve into the paper colour instead of bruising it grey.
 export const LIQUID_PALETTE = [
   '#ffffff',
-  '#e9f7e4',
-  '#bce7ae',
-  '#84cf6f',
-  '#46ad2c',
+  '#f4fbf2',
+  '#dcf1d6',
+  '#bfe3b6',
+  '#8fc98a',
 ];
 
 export const DARK_LIQUID_PALETTE = [
