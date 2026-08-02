@@ -211,7 +211,7 @@ export const translations = {
       'A draggable desktop-pet mascot animated from a single sprite atlas: columns step the frames, rows select the state, and gravity returns it to the ground when released.',
     docs_shimeji_prompt:
       'Build a draggable browser mascot from one sprite sheet. Animate it by stepping background-position across columns, use a different row per state for idle, walk, drag, fall and work, and let it fall back to the ground when the pointer lets go.',
-    docs_shimeji_row: 'Atlas 7x5 // Row 05 "Working" stepping at 7fps',
+    docs_shimeji_row: 'Drag the mascot // Atlas 7x5, bounded to this stage',
     docs_helmet_title: 'Helmet 3D Viewer',
     docs_helmet_short: 'Helmet 3D',
     docs_helmet_desc:
@@ -438,7 +438,7 @@ export const translations = {
       'มาสคอตที่ลากได้ ทำ Animation จาก Sprite Atlas แผ่นเดียว โดยไล่คอลัมน์เป็นเฟรม เลือกแถวตาม State และตกลงพื้นด้วยแรงโน้มถ่วงเมื่อปล่อยมือ',
     docs_shimeji_prompt:
       'สร้างมาสคอตที่ลากได้บนเว็บจาก Sprite Sheet แผ่นเดียว ทำ Animation ด้วยการไล่ background-position ตามคอลัมน์ ใช้แถวต่างกันสำหรับแต่ละ State ทั้ง Idle, Walk, Drag, Fall และ Work และให้ตกกลับลงพื้นเมื่อปล่อยมือ',
-    docs_shimeji_row: 'Atlas 7x5 // แถว 05 "Working" เล่นที่ 7fps',
+    docs_shimeji_row: 'ลากมาสคอตได้ // Atlas 7x5 จำกัดขอบเขตในกรอบนี้',
     docs_helmet_title: 'Helmet 3D Viewer',
     docs_helmet_short: 'Helmet 3D',
     docs_helmet_desc:

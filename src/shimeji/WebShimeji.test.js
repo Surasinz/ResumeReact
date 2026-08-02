@@ -173,3 +173,72 @@ test('responds to reduced-motion preference changes and removes the listener', (
     registeredHandler
   );
 });
+
+test('bounds a contained mascot to its container and drags in its space', () => {
+  const stage = document.createElement('div');
+  document.body.appendChild(stage);
+  // jsdom reports 0 for layout, so stand in for a 500x300 box at (200, 100).
+  Object.defineProperty(stage, 'clientWidth', { configurable: true, value: 500 });
+  Object.defineProperty(stage, 'clientHeight', { configurable: true, value: 300 });
+  jest.spyOn(stage, 'getBoundingClientRect').mockReturnValue({
+    left: 200,
+    top: 100,
+    right: 700,
+    bottom: 400,
+    width: 500,
+    height: 300,
+    x: 200,
+    y: 100,
+    toJSON: () => {},
+  });
+
+  const mascot = new WebShimeji({
+    spriteUrl: '/builder-bot-sprite.webp',
+    container: stage,
+    displayWidth: 100,
+  }).mount();
+
+  // Mounted inside the container, not the page shell, and marked so CSS can
+  // switch it from fixed to absolute positioning.
+  expect(mascot.element.parentElement).toBe(stage);
+  expect(mascot.element).toHaveClass('is-contained');
+
+  // Bounds come from the container, not the 800x600 viewport.
+  expect(mascot.getMaximumX()).toBe(400);
+  expect(mascot.getMaximumY()).toBe(200);
+
+  jest.spyOn(mascot.element, 'getBoundingClientRect').mockReturnValue({
+    left: 200,
+    top: 100,
+    width: 100,
+    height: 100,
+    right: 300,
+    bottom: 200,
+    x: 200,
+    y: 100,
+    toJSON: () => {},
+  });
+  mascot.element.dispatchEvent(
+    new MouseEvent('mousedown', { bubbles: true, button: 0, clientX: 200, clientY: 100 })
+  );
+
+  // Grabbed at the element's corner, so dropping the pointer at (450, 250)
+  // should land the mascot at (250, 150) *within the container* -- without
+  // subtracting the container origin it would be pushed to (450, 250).
+  window.dispatchEvent(
+    new MouseEvent('mousemove', { bubbles: true, clientX: 450, clientY: 250 })
+  );
+  expect(mascot.position.x).toBe(250);
+  expect(mascot.position.y).toBe(150);
+
+  // Still clamped, and clamped to the container rather than the viewport.
+  window.dispatchEvent(
+    new MouseEvent('mousemove', { bubbles: true, clientX: 5000, clientY: 5000 })
+  );
+  expect(mascot.position.x).toBe(400);
+  expect(mascot.position.y).toBe(200);
+
+  mascot.destroy();
+  expect(stage.querySelector('[data-web-shimeji]')).toBeNull();
+  stage.remove();
+});

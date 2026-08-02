@@ -16,6 +16,12 @@
   will-change: transform, background-position;
 }
 
+/* Scoped to a container rather than roaming the viewport. */
+.web-shimeji.is-contained {
+  position: absolute;
+  z-index: 2;
+}
+
 .web-shimeji.is-dragging {
   cursor: grabbing;
   filter:

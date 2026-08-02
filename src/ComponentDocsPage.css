@@ -839,45 +839,23 @@
   color: #05070b;
 }
 
-.docs-sprite-stage {
-  display: grid;
-  gap: 1.4rem;
-  place-items: center;
-  padding: clamp(1.5rem, 5vw, 3rem);
-}
-
 /*
-  Same atlas the mounted mascot uses. background-size scales all 7 columns,
-  and the steps() timing walks background-position one cell at a time so no
-  frame is ever shown half-blended into the next.
+  The mascot positions itself absolutely against this box and clamps its
+  walking, falling and dragging to the box's size, so it needs to be
+  positioned and to have a real height of its own.
 */
-.docs-sprite {
-  display: block;
-  width: 160px;
-  height: 160px;
-  background-repeat: no-repeat;
-  background-size: 1120px auto;
-  background-position: 0 -640px;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.5));
-  animation: docs-sprite-walk 1s steps(1) infinite;
-}
-
-.docs-sprite-stage small {
-  color: var(--docs-muted);
-  font-size: 0.58rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-@keyframes docs-sprite-walk {
-  0%       { background-position: 0 -640px; }
-  14.28%   { background-position: -160px -640px; }
-  28.57%   { background-position: -320px -640px; }
-  42.85%   { background-position: -480px -640px; }
-  57.14%   { background-position: -640px -640px; }
-  71.42%   { background-position: -800px -640px; }
-  85.71%   { background-position: -960px -640px; }
+.docs-shimeji-stage {
+  position: relative;
+  width: min(calc(100% - 2rem), 620px);
+  height: 380px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 243, 255, 0.28);
+  background:
+    linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+    rgba(6, 8, 12, 0.96);
+  background-size: 38px 38px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.42);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -889,10 +867,6 @@
   }
 
   .docs-prompt i {
-    animation: none;
-  }
-
-  .docs-sprite {
     animation: none;
   }
 }

@@ -4,6 +4,7 @@ import HelmetViewer from './HelmetViewer';
 import PixelLiquidBackground from './PixelLiquidBackground';
 import { LocalizedText, useLanguage } from './LanguageSystem';
 import { useTheme } from './ThemeSystem';
+import WebShimeji from './shimeji/WebShimeji';
 
 const PRISM_VERSION = '1.29.0';
 const PRISM_STYLES = [
@@ -369,7 +370,15 @@ const shimejiCss = `.web-shimeji {
   cursor: grabbing;
 }`;
 
-const shimejiJs = `// One 7x5 atlas: columns are frames, rows are states.
+const shimejiJs = `// Pass a container to bound the mascot to a box instead of the viewport.
+// Everything downstream -- walk limits, where it falls to, and the space it
+// is dragged in -- is derived from this one option.
+const mascot = new WebShimeji({
+  spriteUrl: '/builder-bot-sprite.webp',
+  container: stageElement, // omit to let it roam the whole page
+}).mount();
+
+// One 7x5 atlas: columns are frames, rows are states.
 const ANIMATIONS = {
   idle:    { row: 0, fps: 6 },
   walk:    { row: 1, fps: 10 },
@@ -390,6 +399,15 @@ function drawFrame(element, state, frameIndex) {
   element.style.backgroundSize = \`\${FRAME * COLUMNS * scale}px auto\`;
   element.style.backgroundPosition =
     \`\${-frameIndex * FRAME * scale}px \${-row * FRAME * scale}px\`;
+}
+
+// Pointer events are in viewport coordinates but the transform is relative
+// to whatever the mascot is positioned against, so a contained mascot has
+// to subtract its container's corner or it jumps on grab.
+function dragOrigin(container) {
+  if (!container) return { left: 0, top: 0 };
+  const { left, top } = container.getBoundingClientRect();
+  return { left, top };
 }`;
 
 const helmetJsx = `// Scale is derived from the bounding box THREE reports once GLTFLoader has
@@ -686,18 +704,30 @@ function CustomCursorPreview() {
 }
 
 function ShimejiPreview() {
-  // Steps the real atlas through its "working" row (row 4 of 5) the same way
-  // the mounted mascot does, without letting it roam the docs page.
+  const stageRef = useRef(null);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return undefined;
+
+    // The real mascot, bounded to this stage instead of the page shell, so
+    // dragging it here behaves exactly as it does on the site.
+    const mascot = new WebShimeji({
+      spriteUrl: `${process.env.PUBLIC_URL}/builder-bot-sprite.webp`,
+      container: stage,
+      displayWidth: 112,
+    }).mount();
+
+    return () => mascot.destroy();
+  }, []);
+
   return (
-    <div className="docs-sprite-stage" data-testid="docs-shimeji">
-      <span
-        className="docs-sprite"
-        style={{
-          backgroundImage: `url("${process.env.PUBLIC_URL}/builder-bot-sprite.webp")`,
-        }}
-        aria-hidden="true"
+    <div className="docs-shimeji-stage" ref={stageRef} data-testid="docs-shimeji">
+      <LocalizedText
+        as="small"
+        className="docs-frame-hint"
+        i18nKey="docs_shimeji_row"
       />
-      <LocalizedText as="small" i18nKey="docs_shimeji_row" />
     </div>
   );
 }

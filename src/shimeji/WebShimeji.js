@@ -52,6 +52,10 @@ const randomBetween = (random, minimum, maximum) =>
 export default class WebShimeji {
   constructor({
     spriteUrl,
+    // Pass an element to keep the mascot inside it instead of letting it
+    // roam the viewport. The bounds it walks and falls within, and the
+    // coordinate space it is dragged in, both follow from this.
+    container = null,
     frameWidth = 256,
     frameHeight = 256,
     columns = 7,
@@ -66,6 +70,8 @@ export default class WebShimeji {
     if (!spriteUrl) throw new Error('WebShimeji requires a spriteUrl.');
 
     this.spriteUrl = spriteUrl;
+    this.container = container;
+    this.resizeObserver = null;
     this.frameWidth = frameWidth;
     this.frameHeight = frameHeight;
     this.columns = columns;
@@ -117,7 +123,9 @@ export default class WebShimeji {
     this.element.style.backgroundSize =
       `${this.columns * this.displayWidth}px ${this.rows * this.displayHeight}px`;
 
-    const mountTarget = document.querySelector('.site-shell') ?? document.body;
+    const mountTarget =
+      this.container ?? document.querySelector('.site-shell') ?? document.body;
+    if (this.container) this.element.classList.add('is-contained');
     mountTarget.appendChild(this.element);
     this.updateBounds();
     this.position.x = Math.min(32, this.getMaximumX());
@@ -129,6 +137,12 @@ export default class WebShimeji {
     window.addEventListener('mousemove', this.handleMouseMove, { passive: false });
     window.addEventListener('mouseup', this.handleMouseUp);
     window.addEventListener('resize', this.handleResize);
+    // A window resize says nothing about a container that reflows on its
+    // own, so watch the box directly when there is one.
+    if (this.container && typeof ResizeObserver === 'function') {
+      this.resizeObserver = new ResizeObserver(this.handleResize);
+      this.resizeObserver.observe(this.container);
+    }
     this.motionPreference?.addEventListener?.(
       'change',
       this.handleMotionPreferenceChange
@@ -152,6 +166,8 @@ export default class WebShimeji {
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('resize', this.handleResize);
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = null;
     this.motionPreference?.removeEventListener?.(
       'change',
       this.handleMotionPreferenceChange
@@ -318,13 +334,14 @@ export default class WebShimeji {
     if (!this.dragging) return;
 
     event.preventDefault();
+    const origin = this.getDragOrigin();
     this.position.x = clamp(
-      event.clientX - this.dragOffset.x,
+      event.clientX - this.dragOffset.x - origin.left,
       0,
       this.getMaximumX()
     );
     this.position.y = clamp(
-      event.clientY - this.dragOffset.y,
+      event.clientY - this.dragOffset.y - origin.top,
       0,
       this.getMaximumY()
     );
@@ -392,8 +409,27 @@ export default class WebShimeji {
   }
 
   updateBounds() {
+    if (this.container) {
+      this.bounds.width = this.container.clientWidth;
+      this.bounds.height = this.container.clientHeight;
+      return;
+    }
+
     this.bounds.width = window.innerWidth;
     this.bounds.height = window.innerHeight;
+  }
+
+  /*
+    Pointer events report viewport coordinates, but the transform is relative
+    to whatever the mascot is positioned against. Uncontained that is the
+    viewport, so the offset is zero; inside a container it is the container's
+    top-left corner.
+  */
+  getDragOrigin() {
+    if (!this.container) return { left: 0, top: 0 };
+
+    const rect = this.container.getBoundingClientRect();
+    return { left: rect.left, top: rect.top };
   }
 
   getMaximumX() {
