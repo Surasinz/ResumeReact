@@ -6,6 +6,13 @@ import ComponentDocsPage, {
 } from './ComponentDocsPage';
 import { LanguageProvider, LanguageToggle } from './LanguageSystem';
 
+// These two previews mount real renderers (WebGL / three.js), which jsdom
+// cannot provide and which would fetch a 5MB .glb on import.
+jest.mock('./HelmetViewer', () => () => <div data-testid="helmet-viewer-mock" />);
+jest.mock('./PixelLiquidBackground', () => () => (
+  <div data-testid="pixel-liquid-mock" />
+));
+
 beforeEach(() => {
   window.history.replaceState({}, '', '/components');
   window.Prism = {
@@ -147,7 +154,45 @@ test('documents every configured component', () => {
   expect(COMPONENTS.map((component) => component.id)).toEqual([
     'spotlight-avatar',
     'terminal-form',
+    'liquid-background',
+    'custom-cursor',
+    'web-shimeji',
+    'helmet-model',
   ]);
+
+  // Every entry has to be fully wired or it renders a blank doc: a preview,
+  // an index that matches its position, and at least one code snippet.
+  COMPONENTS.forEach((component, position) => {
+    expect(component.index).toBe(String(position + 1).padStart(2, '0'));
+    expect(component.code.length).toBeGreaterThan(0);
+    expect(component.titleKey).toBeTruthy();
+    expect(component.shortTitleKey).toBeTruthy();
+    expect(component.descriptionKey).toBeTruthy();
+    expect(component.promptKey).toBeTruthy();
+  });
+});
+
+test('renders a preview and translated copy for every documented component', () => {
+  const { container } = render(
+    <LanguageProvider>
+      <ComponentDocsPage />
+    </LanguageProvider>
+  );
+  const navigation = screen.getByRole('navigation', {
+    name: 'Component documentation',
+  });
+
+  COMPONENTS.forEach((component) => {
+    fireEvent.click(
+      within(navigation).getByRole('link', { name: component.shortTitle })
+    );
+    expect(
+      screen.getByRole('heading', { name: component.title })
+    ).toBeInTheDocument();
+    // A missing translation key would surface as the raw key on screen.
+    expect(container.textContent).not.toContain('docs_');
+    expect(container.querySelector('.preview-box')?.children.length).toBe(1);
+  });
 });
 
 test('refreshes the Prism copy toolbar label after switching language', async () => {

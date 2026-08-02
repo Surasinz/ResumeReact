@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import './ComponentDocsPage.css';
+import HelmetViewer from './HelmetViewer';
+import PixelLiquidBackground from './PixelLiquidBackground';
 import { LocalizedText, useLanguage } from './LanguageSystem';
+import { useTheme } from './ThemeSystem';
 
 const PRISM_VERSION = '1.29.0';
 const PRISM_STYLES = [
@@ -252,6 +255,191 @@ const terminalCss = `.terminal-form {
   color: #0a0a0f;
 }`;
 
+const liquidGlsl = `precision highp float;
+uniform sampler2D velocity;
+uniform sampler2D palette;
+uniform vec4 bgColor;
+varying vec2 uv;
+
+void main() {
+  vec2 vel = texture2D(velocity, uv).xy;
+  float t = smoothstep(0.0, 1.0, clamp(length(vel) * 2.2, 0.0, 1.0));
+
+  // Sample the ramp, then fade toward the page colour as the fluid calms.
+  // bgColor is what makes this survive a light theme.
+  vec3 fluidColor = texture2D(palette, vec2(t, 0.5)).rgb;
+  gl_FragColor = vec4(mix(bgColor.rgb, fluidColor, t), t);
+}`;
+
+const liquidJs = `// The ramp and the colour it settles into both follow the theme. On a light
+// page calm fluid has to dissolve into white -- fading it to black instead
+// is what paints grey smoke over the copy.
+const PALETTE = isDark
+  ? ['#000000', '#190713', '#521034', '#a91f68', '#ff35a2']
+  : ['#ffffff', '#f4fbf2', '#dcf1d6', '#bfe3b6', '#8fc98a'];
+
+const uniforms = {
+  velocity: { value: simulation.fbos.vel0.texture },
+  palette: { value: makePaletteTexture(PALETTE) },
+  bgColor: {
+    value: isDark
+      ? new THREE.Vector4(0, 0, 0, 0)
+      : new THREE.Vector4(1, 1, 1, 0),
+  },
+};
+
+// Advect the velocity field, solve pressure, then draw the colour pass.
+function frame() {
+  simulation.update();
+  renderer.setRenderTarget(null);
+  renderer.render(outputScene, outputCamera);
+  animationFrame = requestAnimationFrame(frame);
+}`;
+
+const liquidCss = `.pixel-liquid-background {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 300ms ease;
+}
+
+.pixel-liquid-background.is-enabled {
+  opacity: 1;
+}
+
+/* On paper the layer sits back as a wash rather than a glow. */
+body[data-theme='light'] .pixel-liquid-background.is-enabled {
+  opacity: 0.32;
+}`;
+
+const cursorCss = `@media (pointer: fine) {
+  .language-content {
+    cursor: var(--cursor-default);
+  }
+
+  .language-content a,
+  .language-content button,
+  .language-content [role='button'],
+  .language-content input,
+  .language-content textarea,
+  .language-content summary {
+    cursor: var(--cursor-hand);
+  }
+}`;
+
+const cursorJs = `// Scoped to the wrapper every route renders inside, so the cursor survives
+// navigation instead of living on a single page's shell.
+function SiteCursorScope({ children }) {
+  const { theme } = useTheme();
+  const suffix = theme === 'dark' ? '-dark' : '';
+
+  return (
+    <div
+      className="language-content"
+      style={{
+        // The trailing numbers are the hotspot: which pixel of the artwork
+        // is the actual click point.
+        '--cursor-default': \`url("/cursor\${suffix}.png") 3 3, auto\`,
+        '--cursor-hand': \`url("/hand\${suffix}.png") 4 4, pointer\`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}`;
+
+const shimejiCss = `.web-shimeji {
+  position: fixed;
+  z-index: 55;
+  top: 0;
+  left: 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.42));
+  cursor: grab;
+  user-select: none;
+  contain: layout paint style;
+  will-change: transform, background-position;
+}
+
+.web-shimeji.is-dragging {
+  cursor: grabbing;
+}`;
+
+const shimejiJs = `// One 7x5 atlas: columns are frames, rows are states.
+const ANIMATIONS = {
+  idle:    { row: 0, fps: 6 },
+  walk:    { row: 1, fps: 10 },
+  dragged: { row: 2, fps: 8 },
+  falling: { row: 3, fps: 10 },
+  working: { row: 4, fps: 7 },
+};
+
+const FRAME = 256;
+const COLUMNS = 7;
+
+function drawFrame(element, state, frameIndex) {
+  const { row } = ANIMATIONS[state];
+  const scale = element.offsetWidth / FRAME;
+
+  // background-size scales the whole atlas; background-position picks the
+  // one cell that should be visible.
+  element.style.backgroundSize = \`\${FRAME * COLUMNS * scale}px auto\`;
+  element.style.backgroundPosition =
+    \`\${-frameIndex * FRAME * scale}px \${-row * FRAME * scale}px\`;
+}`;
+
+const helmetJsx = `// Scale is derived from the bounding box THREE reports once GLTFLoader has
+// decoded the file. The raw glTF accessor range reads very differently, so
+// trusting it put the model off by roughly 1700x.
+const HELMET_SCALE = 1.6;
+
+function HelmetModel() {
+  const { scene } = useGLTF('/racing-helmet.glb');
+  return (
+    <Center>
+      <primitive object={scene} scale={HELMET_SCALE} />
+    </Center>
+  );
+}
+
+export default function HelmetViewer() {
+  return (
+    <Canvas
+      className="helmet-canvas"
+      dpr={[1, 1.5]}
+      camera={{ position: [0, 0.3, 2.6], fov: 40 }}
+      gl={{ antialias: true, alpha: true }}
+    >
+      <hemisphereLight args={['#ffffff', '#1a1a2e', 0.55]} />
+      <directionalLight position={[3, 4, 2]} intensity={1.4} />
+      <Suspense fallback={null}>
+        <HelmetModel />
+      </Suspense>
+      <OrbitControls enableZoom={false} enablePan={false} autoRotate />
+    </Canvas>
+  );
+}`;
+
+const helmetCss = `/*
+  Absolute on purpose. As a normal child of a CSS Grid parent that also has
+  sibling elements, the canvas's measured size and the grid's auto-sized
+  track feed back into each other and the model grows every frame, with no
+  interaction needed to trigger it.
+  See github.com/pmndrs/react-three-fiber/issues/2861
+*/
+.helmet-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y;
+}`;
+
 const COMPONENTS = [
   {
     id: 'spotlight-avatar',
@@ -290,6 +478,83 @@ const COMPONENTS = [
     code: [
       { label: 'HTML', language: 'html', value: terminalHtml },
       { label: 'CSS', language: 'css', value: terminalCss },
+    ],
+  },
+  {
+    id: 'liquid-background',
+    index: '03',
+    title: 'Pixel Liquid Background',
+    titleKey: 'docs_liquid_title',
+    shortTitle: 'Liquid Background',
+    shortTitleKey: 'docs_liquid_short',
+    status: 'WEBGL',
+    description:
+      'A GPU fluid simulation drives the smoke behind the site. Velocity is advected, pressure solved for incompressibility, then sampled through a colour ramp that resolves into the page.',
+    descriptionKey: 'docs_liquid_desc',
+    prompt:
+      'Build a WebGL background that simulates flowing liquid smoke reacting to the pointer. Advect a velocity field, solve for incompressibility with a Jacobi pressure pass, and map the result through a colour ramp that fades into the page background so it holds up on both light and dark themes.',
+    promptKey: 'docs_liquid_prompt',
+    code: [
+      { label: 'Colour pass', language: 'glsl', value: liquidGlsl },
+      { label: 'JavaScript', language: 'javascript', value: liquidJs },
+      { label: 'CSS', language: 'css', value: liquidCss },
+    ],
+  },
+  {
+    id: 'custom-cursor',
+    index: '04',
+    title: 'Themed Custom Cursor',
+    titleKey: 'docs_cursor_title',
+    shortTitle: 'Custom Cursor',
+    shortTitleKey: 'docs_cursor_short',
+    status: 'POINTER',
+    description:
+      'Pointer artwork swapped through CSS custom properties, so one variable change re-skins every cursor on the page when the theme flips.',
+    descriptionKey: 'docs_cursor_desc',
+    prompt:
+      'Replace the default pointer with custom PNG artwork using CSS cursor url() plus a hotspot offset. Drive the image path from a CSS variable so switching theme swaps the whole set at once, scope it to a wrapper shared by every route, and only apply it where the device actually has a fine pointer.',
+    promptKey: 'docs_cursor_prompt',
+    code: [
+      { label: 'CSS', language: 'css', value: cursorCss },
+      { label: 'React', language: 'javascript', value: cursorJs },
+    ],
+  },
+  {
+    id: 'web-shimeji',
+    index: '05',
+    title: 'Web Shimeji Mascot',
+    titleKey: 'docs_shimeji_title',
+    shortTitle: 'Shimeji Mascot',
+    shortTitleKey: 'docs_shimeji_short',
+    status: 'SPRITE',
+    description:
+      'A draggable desktop-pet mascot animated from a single sprite atlas: columns step the frames, rows select the state, and gravity returns it to the ground when released.',
+    descriptionKey: 'docs_shimeji_desc',
+    prompt:
+      'Build a draggable browser mascot from one sprite sheet. Animate it by stepping background-position across columns, use a different row per state for idle, walk, drag, fall and work, and let it fall back to the ground when the pointer lets go.',
+    promptKey: 'docs_shimeji_prompt',
+    code: [
+      { label: 'JavaScript', language: 'javascript', value: shimejiJs },
+      { label: 'CSS', language: 'css', value: shimejiCss },
+    ],
+  },
+  {
+    id: 'helmet-model',
+    index: '06',
+    title: 'Helmet 3D Viewer',
+    titleKey: 'docs_helmet_title',
+    shortTitle: 'Helmet 3D',
+    shortTitleKey: 'docs_helmet_short',
+    status: '3D MODEL',
+    description:
+      'A glTF model in react-three-fiber, auto-centred and scaled from its measured bounding box, with orbit controls limited to rotation so the framing can never be lost.',
+    descriptionKey: 'docs_helmet_desc',
+    prompt:
+      'Load a .glb model into a react-three-fiber canvas. Centre it automatically, derive its scale from the bounding box the renderer reports rather than the raw file values, light it with a hemisphere plus two directional lights, and allow drag-to-rotate while disabling zoom and pan.',
+    promptKey: 'docs_helmet_prompt',
+    code: [
+      { label: 'React', language: 'javascript', value: helmetJsx },
+      { label: 'CSS', language: 'css', value: helmetCss },
     ],
   },
 ];
@@ -384,12 +649,84 @@ function TerminalFormPreview() {
   );
 }
 
-function ComponentPreview({ componentId }) {
-  return componentId === 'spotlight-avatar' ? (
-    <SpotlightPreview />
-  ) : (
-    <TerminalFormPreview />
+function LiquidBackgroundPreview() {
+  // The real background layer, contained by .docs-live-frame instead of
+  // running fixed across the viewport.
+  return (
+    <div className="docs-live-frame" data-testid="docs-liquid">
+      <PixelLiquidBackground enabled />
+      <LocalizedText
+        as="small"
+        className="docs-frame-hint"
+        i18nKey="docs_move_cursor"
+      />
+    </div>
   );
+}
+
+function CustomCursorPreview() {
+  const { theme } = useTheme();
+  const suffix = theme === 'dark' ? '-dark' : '';
+
+  return (
+    <div
+      className="docs-cursor-pad"
+      data-testid="docs-cursor"
+      style={{
+        '--docs-cursor-default': `url("${process.env.PUBLIC_URL}/cursor${suffix}.png") 3 3, auto`,
+        '--docs-cursor-hand': `url("${process.env.PUBLIC_URL}/hand${suffix}.png") 4 4, pointer`,
+      }}
+    >
+      <LocalizedText as="p" i18nKey="docs_cursor_hint" />
+      <button type="button" onClick={(event) => event.preventDefault()}>
+        [ <LocalizedText i18nKey="docs_cursor_hover" /> ]
+      </button>
+    </div>
+  );
+}
+
+function ShimejiPreview() {
+  // Steps the real atlas through its "working" row (row 4 of 5) the same way
+  // the mounted mascot does, without letting it roam the docs page.
+  return (
+    <div className="docs-sprite-stage" data-testid="docs-shimeji">
+      <span
+        className="docs-sprite"
+        style={{
+          backgroundImage: `url("${process.env.PUBLIC_URL}/builder-bot-sprite.webp")`,
+        }}
+        aria-hidden="true"
+      />
+      <LocalizedText as="small" i18nKey="docs_shimeji_row" />
+    </div>
+  );
+}
+
+function HelmetModelPreview() {
+  return (
+    <div className="docs-live-frame" data-testid="docs-helmet">
+      <HelmetViewer />
+      <LocalizedText
+        as="small"
+        className="docs-frame-hint"
+        i18nKey="docs_helmet_hint"
+      />
+    </div>
+  );
+}
+
+const PREVIEWS = {
+  'spotlight-avatar': SpotlightPreview,
+  'terminal-form': TerminalFormPreview,
+  'liquid-background': LiquidBackgroundPreview,
+  'custom-cursor': CustomCursorPreview,
+  'web-shimeji': ShimejiPreview,
+  'helmet-model': HelmetModelPreview,
+};
+
+function ComponentPreview({ componentId }) {
+  const Preview = PREVIEWS[componentId];
+  return Preview ? <Preview /> : null;
 }
 
 export default function ComponentDocsPage() {

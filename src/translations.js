@@ -191,6 +191,34 @@ export const translations = {
       'A focused terminal-style Form pattern with clear labels, neon focus states, and a high-contrast transmission action.',
     docs_terminal_prompt:
       'Design an accessible Cyberpunk feedback Form with monospace labels, transparent inputs, neon focus borders, and a prominent transmit button.',
+    docs_liquid_title: 'Pixel Liquid Background',
+    docs_liquid_short: 'Liquid Background',
+    docs_liquid_desc:
+      'A GPU fluid simulation drives the smoke behind the site. Velocity is advected, pressure solved for incompressibility, then sampled through a colour ramp that resolves into the page.',
+    docs_liquid_prompt:
+      'Build a WebGL background that simulates flowing liquid smoke reacting to the pointer. Advect a velocity field, solve for incompressibility with a Jacobi pressure pass, and map the result through a colour ramp that fades into the page background so it holds up on both light and dark themes.',
+    docs_cursor_title: 'Themed Custom Cursor',
+    docs_cursor_short: 'Custom Cursor',
+    docs_cursor_desc:
+      'Pointer artwork swapped through CSS custom properties, so one variable change re-skins every cursor on the page when the theme flips.',
+    docs_cursor_prompt:
+      'Replace the default pointer with custom PNG artwork using CSS cursor url() plus a hotspot offset. Drive the image path from a CSS variable so switching theme swaps the whole set at once, scope it to a wrapper shared by every route, and only apply it where the device actually has a fine pointer.',
+    docs_cursor_hint: 'Move across this panel // Artwork follows the theme',
+    docs_cursor_hover: 'Hover me',
+    docs_shimeji_title: 'Web Shimeji Mascot',
+    docs_shimeji_short: 'Shimeji Mascot',
+    docs_shimeji_desc:
+      'A draggable desktop-pet mascot animated from a single sprite atlas: columns step the frames, rows select the state, and gravity returns it to the ground when released.',
+    docs_shimeji_prompt:
+      'Build a draggable browser mascot from one sprite sheet. Animate it by stepping background-position across columns, use a different row per state for idle, walk, drag, fall and work, and let it fall back to the ground when the pointer lets go.',
+    docs_shimeji_row: 'Atlas 7x5 // Row 05 "Working" stepping at 7fps',
+    docs_helmet_title: 'Helmet 3D Viewer',
+    docs_helmet_short: 'Helmet 3D',
+    docs_helmet_desc:
+      'A glTF model in react-three-fiber, auto-centred and scaled from its measured bounding box, with orbit controls limited to rotation so the framing can never be lost.',
+    docs_helmet_prompt:
+      'Load a .glb model into a react-three-fiber canvas. Centre it automatically, derive its scale from the bounding box the renderer reports rather than the raw file values, light it with a hemisphere plus two directional lights, and allow drag-to-rotate while disabling zoom and pan.',
+    docs_helmet_hint: 'Drag to rotate // Zoom and pan disabled',
     docs_move_cursor: 'Move cursor // Reveal layer',
     docs_callsign: 'Callsign',
     docs_message: 'Message',
@@ -390,6 +418,34 @@ export const translations = {
       'รูปแบบ Terminal Form ที่โฟกัสชัดเจน มี Labels อ่านง่าย, Neon Focus States และปุ่มส่งข้อมูลที่ Contrast สูง',
     docs_terminal_prompt:
       'ออกแบบ Cyberpunk Feedback Form ที่รองรับ Accessibility ใช้ Monospace Labels, Inputs แบบโปร่งใส, Neon Focus Borders และปุ่มส่งข้อมูลที่เด่นชัด',
+    docs_liquid_title: 'Pixel Liquid Background',
+    docs_liquid_short: 'Liquid Background',
+    docs_liquid_desc:
+      'Fluid Simulation บน GPU ที่ขับควันด้านหลังเว็บไซต์ คำนวณการไหลของ Velocity, แก้ Pressure ให้ของไหลบีบอัดไม่ได้ แล้วส่งผลลัพธ์ผ่าน Colour Ramp ที่กลืนไปกับสีพื้นหน้าเว็บ',
+    docs_liquid_prompt:
+      'สร้าง WebGL Background ที่จำลองควันของเหลวไหลตาม Pointer โดยคำนวณการไหลของ Velocity Field, แก้สมการ Pressure ด้วย Jacobi Solver และ Map ผลลัพธ์ผ่าน Colour Ramp ที่ Fade เข้าหาสีพื้นหลัง เพื่อให้ใช้งานได้ทั้ง Light และ Dark Theme',
+    docs_cursor_title: 'Themed Custom Cursor',
+    docs_cursor_short: 'Custom Cursor',
+    docs_cursor_desc:
+      'เปลี่ยนรูป Pointer ผ่าน CSS Custom Properties แก้ตัวแปรเดียวก็เปลี่ยน Cursor ทั้งหน้าเว็บตาม Theme ได้ทันที',
+    docs_cursor_prompt:
+      'แทนที่ Pointer มาตรฐานด้วยรูป PNG โดยใช้ CSS cursor url() พร้อมกำหนดจุด Hotspot ให้ Path ของรูปมาจาก CSS Variable เพื่อให้สลับ Theme แล้วเปลี่ยนครบทุกตัวพร้อมกัน วางไว้ที่ Wrapper ที่ทุก Route ใช้ร่วมกัน และให้ทำงานเฉพาะอุปกรณ์ที่มี Pointer จริง',
+    docs_cursor_hint: 'ลองเลื่อนเมาส์ในกรอบนี้ // รูป Cursor เปลี่ยนตาม Theme',
+    docs_cursor_hover: 'ลองชี้ที่ปุ่มนี้',
+    docs_shimeji_title: 'Web Shimeji Mascot',
+    docs_shimeji_short: 'Shimeji Mascot',
+    docs_shimeji_desc:
+      'มาสคอตที่ลากได้ ทำ Animation จาก Sprite Atlas แผ่นเดียว โดยไล่คอลัมน์เป็นเฟรม เลือกแถวตาม State และตกลงพื้นด้วยแรงโน้มถ่วงเมื่อปล่อยมือ',
+    docs_shimeji_prompt:
+      'สร้างมาสคอตที่ลากได้บนเว็บจาก Sprite Sheet แผ่นเดียว ทำ Animation ด้วยการไล่ background-position ตามคอลัมน์ ใช้แถวต่างกันสำหรับแต่ละ State ทั้ง Idle, Walk, Drag, Fall และ Work และให้ตกกลับลงพื้นเมื่อปล่อยมือ',
+    docs_shimeji_row: 'Atlas 7x5 // แถว 05 "Working" เล่นที่ 7fps',
+    docs_helmet_title: 'Helmet 3D Viewer',
+    docs_helmet_short: 'Helmet 3D',
+    docs_helmet_desc:
+      'โมเดล glTF บน react-three-fiber จัดกึ่งกลางอัตโนมัติและกำหนด Scale จาก Bounding Box ที่วัดได้จริง พร้อม Orbit Controls ที่จำกัดให้หมุนได้อย่างเดียว เพื่อไม่ให้เฟรมภาพเสีย',
+    docs_helmet_prompt:
+      'โหลดโมเดล .glb เข้า react-three-fiber Canvas จัดกึ่งกลางอัตโนมัติ คำนวณ Scale จาก Bounding Box ที่ Renderer รายงานจริงแทนค่าดิบในไฟล์ จัดแสงด้วย Hemisphere Light และ Directional Light สองดวง และให้ลากเพื่อหมุนได้ แต่ปิด Zoom กับ Pan',
+    docs_helmet_hint: 'ลากเพื่อหมุน // ปิด Zoom และ Pan',
     docs_move_cursor: 'เลื่อน Cursor // Reveal Layer',
     docs_callsign: 'ชื่อเรียก',
     docs_message: 'ข้อความ',

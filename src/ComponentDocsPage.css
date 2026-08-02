@@ -752,6 +752,118 @@
   }
 }
 
+/*
+  Shared stage for the two previews that mount a real renderer. Both the
+  liquid layer and the helmet canvas position themselves absolutely, so they
+  need a positioned box to be contained by -- otherwise the liquid escapes
+  fixed across the viewport and the canvas anchors to the page.
+*/
+.docs-live-frame {
+  position: relative;
+  width: min(calc(100% - 2rem), 620px);
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid rgba(0, 243, 255, 0.28);
+  background: rgba(6, 8, 12, 0.96);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.42);
+}
+
+.docs-live-frame .pixel-liquid-background {
+  position: absolute;
+}
+
+.docs-frame-hint {
+  position: absolute;
+  z-index: 3;
+  right: 0.9rem;
+  bottom: 0.75rem;
+  color: rgba(244, 241, 234, 0.5);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.docs-cursor-pad {
+  display: grid;
+  gap: 1.6rem;
+  place-items: center;
+  width: min(calc(100% - 2rem), 560px);
+  padding: clamp(2.5rem, 7vw, 4.5rem);
+  border: 1px dashed rgba(0, 243, 255, 0.3);
+  background: rgba(10, 10, 15, 0.94);
+  cursor: var(--docs-cursor-default);
+}
+
+.docs-cursor-pad p {
+  margin: 0;
+  color: var(--docs-muted);
+  font-size: 0.68rem;
+  letter-spacing: 0.13em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.docs-cursor-pad button {
+  border: 1px solid var(--docs-green);
+  padding: 0.85rem 1.6rem;
+  background: transparent;
+  color: var(--docs-green);
+  font: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: var(--docs-cursor-hand);
+  transition: background 200ms ease, color 200ms ease;
+}
+
+.docs-cursor-pad button:hover,
+.docs-cursor-pad button:focus-visible {
+  background: var(--docs-green);
+  color: #05070b;
+}
+
+.docs-sprite-stage {
+  display: grid;
+  gap: 1.4rem;
+  place-items: center;
+  padding: clamp(1.5rem, 5vw, 3rem);
+}
+
+/*
+  Same atlas the mounted mascot uses. background-size scales all 7 columns,
+  and the steps() timing walks background-position one cell at a time so no
+  frame is ever shown half-blended into the next.
+*/
+.docs-sprite {
+  display: block;
+  width: 160px;
+  height: 160px;
+  background-repeat: no-repeat;
+  background-size: 1120px auto;
+  background-position: 0 -640px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 12px 14px rgba(0, 0, 0, 0.5));
+  animation: docs-sprite-walk 1s steps(1) infinite;
+}
+
+.docs-sprite-stage small {
+  color: var(--docs-muted);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@keyframes docs-sprite-walk {
+  0%       { background-position: 0 -640px; }
+  14.28%   { background-position: -160px -640px; }
+  28.57%   { background-position: -320px -640px; }
+  42.85%   { background-position: -480px -640px; }
+  57.14%   { background-position: -640px -640px; }
+  71.42%   { background-position: -800px -640px; }
+  85.71%   { background-position: -960px -640px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .docs-sidebar,
   .docs-spotlight-reveal,
@@ -761,6 +873,10 @@
   }
 
   .docs-prompt i {
+    animation: none;
+  }
+
+  .docs-sprite {
     animation: none;
   }
 }
