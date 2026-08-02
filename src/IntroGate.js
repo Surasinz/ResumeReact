@@ -6,28 +6,16 @@ import { useTheme } from './ThemeSystem';
 
 export const INTRO_SESSION_KEY = 'surachet-intro-seen';
 
-// Assembly timings in seconds, shared by the 3D parts and by the timer that
-// reveals the entry control.
-const PART_DURATION = 0.85;
-const PARTS = {
-  base: { delay: 0, offset: [0, -2.4, 0] },
-  neck: { delay: 0.3, offset: [0, -1.8, 0] },
-  bezel: { delay: 0.62, offset: [0, 2.6, 0] },
-  screen: { delay: 1.0, offset: [0, 0, -1.4] },
-};
-const ASSEMBLY_SECONDS =
-  Math.max(...Object.values(PARTS).map((part) => part.delay)) + PART_DURATION;
-
-// The camera flies in while the machine builds, then holds dead still. It has
-// to end perfectly on-axis: the screen sits on the world origin, so a settled
-// camera at [0, 0, z] looking at the origin puts the panel on the exact centre
-// of the canvas, which is what the DOM entry control is positioned against.
-const FLY_SECONDS = 3.6;
-const CAMERA_START = [5.2, 2.4, 9.4];
-const LOOK_START = [-0.6, -1.0, -1.0];
-// Whichever of the two finishes last, so retiming either one cannot reveal
-// the control over a machine that is still building or still being flown to.
-export const READY_SECONDS = Math.max(FLY_SECONDS, ASSEMBLY_SECONDS) + 0.45;
+/*
+  idle      camera drifts around the room, menu waits for the visitor
+  zooming   menu clears, camera settles onto the panel
+  loading   the panel boots
+  brighten  the room blows out to white and hands over to the portfolio
+*/
+export const PHASES = ['idle', 'zooming', 'loading', 'brighten'];
+export const ZOOM_SECONDS = 1.7;
+export const LOAD_SECONDS = 1.5;
+export const BRIGHT_SECONDS = 0.75;
 
 export function hasSeenIntro() {
   try {
@@ -51,64 +39,75 @@ function prefersReducedMotion() {
 }
 
 const clamp01 = (value) => Math.min(Math.max(value, 0), 1);
-const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
 const easeInOutCubic = (t) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 const mix = (a, b, t) => a + (b - a) * t;
 
-function CameraRig({ still, endZ }) {
+function CameraRig({ phase, endZ, still }) {
   const { camera } = useThree();
+  const lookRef = useRef([0, -0.35, -1.2]);
+  const departureRef = useRef(null);
 
   useFrame((state) => {
-    const progress = still
-      ? 1
-      : clamp01(state.clock.getElapsedTime() / FLY_SECONDS);
-    const eased = easeInOutCubic(progress);
+    const time = state.clock.getElapsedTime();
+
+    if (phase === 'idle') {
+      departureRef.current = null;
+
+      if (still) {
+        camera.position.set(1.4, 0.5, 7.4);
+        lookRef.current = [0, -0.35, -1.2];
+        camera.lookAt(...lookRef.current);
+        return;
+      }
+
+      // A long, slow wander with three different periods, so the loop never
+      // lands back on the same pose and never reads as a repeat.
+      camera.position.set(
+        Math.sin(time * 0.13) * 2.4,
+        0.55 + Math.sin(time * 0.1) * 0.42,
+        7.5 + Math.sin(time * 0.07) * 0.55
+      );
+      lookRef.current = [Math.sin(time * 0.11) * 1.35, -0.35, -1.2];
+      camera.lookAt(...lookRef.current);
+      return;
+    }
+
+    /*
+      Once the visitor commits, ease from wherever the drift happened to be
+      rather than from a fixed pose -- otherwise the camera snaps before it
+      starts moving. The pose is captured on the first frame after the phase
+      changes.
+    */
+    if (!departureRef.current) {
+      departureRef.current = {
+        position: camera.position.toArray(),
+        look: [...lookRef.current],
+        time,
+      };
+    }
+
+    const departure = departureRef.current;
+    const eased = easeInOutCubic(
+      clamp01((time - departure.time) / ZOOM_SECONDS)
+    );
 
     camera.position.set(
-      mix(CAMERA_START[0], 0, eased),
-      mix(CAMERA_START[1], 0, eased),
-      mix(CAMERA_START[2], endZ, eased)
+      mix(departure.position[0], 0, eased),
+      mix(departure.position[1], 0, eased),
+      mix(departure.position[2], endZ, eased)
     );
     camera.lookAt(
-      mix(LOOK_START[0], 0, eased),
-      mix(LOOK_START[1], 0, eased),
-      mix(LOOK_START[2], 0, eased)
+      mix(departure.look[0], 0, eased),
+      mix(departure.look[1], 0, eased),
+      mix(departure.look[2], 0, eased)
     );
   });
 
   return null;
 }
 
-function Part({ name, position, children, still }) {
-  const ref = useRef(null);
-  const { delay, offset } = PARTS[name];
-
-  useFrame((state) => {
-    const group = ref.current;
-    if (!group) return;
-
-    const elapsed = still ? Number.POSITIVE_INFINITY : state.clock.getElapsedTime();
-    const progress = clamp01((elapsed - delay) / PART_DURATION);
-    const eased = easeOutCubic(progress);
-
-    group.position.set(
-      position[0] + offset[0] * (1 - eased),
-      position[1] + offset[1] * (1 - eased),
-      position[2] + offset[2] * (1 - eased)
-    );
-    group.scale.setScalar(0.72 + 0.28 * eased);
-
-    group.traverse((child) => {
-      if (child.material) child.material.opacity = eased;
-    });
-  });
-
-  return <group ref={ref}>{children}</group>;
-}
-
 function Room({ accent, wall, floor }) {
-  // Hex light panels, the neon cue the whole look hangs on.
   const hexes = [
     [-4.3, 1.5, 0.85],
     [-3.5, 0.75, 0.6],
@@ -118,7 +117,6 @@ function Room({ accent, wall, floor }) {
     [4.7, 0.1, 0.65],
   ];
 
-  // Bulbs strung across the ceiling, drooping between two points.
   const bulbs = Array.from({ length: 9 }, (_, i) => {
     const t = i / 8;
     return [mix(-5, 5, t), 2.55 - Math.sin(t * Math.PI) * 0.45, -1.6];
@@ -127,9 +125,8 @@ function Room({ accent, wall, floor }) {
   return (
     <group>
       {/*
-        Deep enough that the camera's start pose is still inside the box.
-        Begin it beyond the far edge and the frame opens on empty clear
-        colour instead of a room.
+        Deep enough that every pose the idle drift reaches is still inside
+        the box; stray outside and the frame opens on empty clear colour.
       */}
       <mesh position={[0, -3.6, 2]}>
         <boxGeometry args={[15, 0.2, 24]} />
@@ -152,7 +149,6 @@ function Room({ accent, wall, floor }) {
         <meshStandardMaterial color={wall} roughness={0.9} />
       </mesh>
 
-      {/* Window above the desk, with slatted blinds catching the glow. */}
       <mesh position={[0, 1.85, -2.36]}>
         <planeGeometry args={[3.6, 1.7]} />
         <meshStandardMaterial
@@ -212,7 +208,6 @@ function Desk({ accent, desk, body }) {
           <meshStandardMaterial color={body} roughness={0.6} metalness={0.3} />
         </mesh>
       ))}
-      {/* Under-desk strip, the light that grounds the whole setup. */}
       <mesh position={[0, -1.9, 1.5]}>
         <boxGeometry args={[8.2, 0.05, 0.05]} />
         <meshStandardMaterial
@@ -223,7 +218,6 @@ function Desk({ accent, desk, body }) {
         />
       </mesh>
 
-      {/* Tower to the right, glowing down one edge. */}
       <group position={[2.75, -0.98, -0.35]}>
         <mesh>
           <boxGeometry args={[0.78, 1.44, 1.3]} />
@@ -240,7 +234,6 @@ function Desk({ accent, desk, body }) {
         </mesh>
       </group>
 
-      {/* Retro machine to the left, screen still on. */}
       <group position={[-2.75, -1.3, -0.1]}>
         <mesh>
           <boxGeometry args={[0.86, 0.94, 0.8]} />
@@ -269,83 +262,82 @@ function Desk({ accent, desk, body }) {
   );
 }
 
-function Monitor({ accent, body, still }) {
+function Monitor({ accent, body, phase }) {
+  const panelRef = useRef(null);
+
+  useFrame((_, delta) => {
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    // The panel wakes as the visitor arrives, then blows out with the room.
+    const target =
+      phase === 'brighten' ? 4.2 : phase === 'loading' ? 1.35 : 0.5;
+    panel.material.emissiveIntensity +=
+      (target - panel.material.emissiveIntensity) * Math.min(delta * 4, 1);
+  });
+
   return (
     <group>
-      <Part name="base" position={[0, -1.65, -0.05]} still={still}>
-        <mesh>
-          <boxGeometry args={[1.7, 0.09, 0.55]} />
-          <meshStandardMaterial
-            color={body}
-            transparent
-            opacity={0}
-            roughness={0.5}
-            metalness={0.25}
-          />
-        </mesh>
-      </Part>
-
-      <Part name="neck" position={[0, -1.35, -0.05]} still={still}>
-        <mesh>
-          <boxGeometry args={[0.26, 0.55, 0.2]} />
-          <meshStandardMaterial
-            color={body}
-            transparent
-            opacity={0}
-            roughness={0.5}
-            metalness={0.25}
-          />
-        </mesh>
-      </Part>
-
-      <Part name="bezel" position={[0, 0, -0.04]} still={still}>
-        <mesh>
-          <boxGeometry args={[3.5, 2.2, 0.16]} />
-          <meshStandardMaterial
-            color={body}
-            transparent
-            opacity={0}
-            roughness={0.45}
-            metalness={0.3}
-          />
-        </mesh>
-      </Part>
-
-      <Part name="screen" position={[0, 0, 0.06]} still={still}>
-        <mesh position={[0, 0, -0.008]}>
-          <planeGeometry args={[3.24, 1.94]} />
-          <meshBasicMaterial color={accent} transparent opacity={0} />
-        </mesh>
-        <mesh>
-          <planeGeometry args={[3.16, 1.86]} />
-          <meshStandardMaterial
-            color="#05070b"
-            emissive={accent}
-            emissiveIntensity={0.5}
-            transparent
-            opacity={0}
-            toneMapped={false}
-          />
-        </mesh>
-      </Part>
+      <mesh position={[0, -1.65, -0.05]}>
+        <boxGeometry args={[1.7, 0.09, 0.55]} />
+        <meshStandardMaterial color={body} roughness={0.5} metalness={0.25} />
+      </mesh>
+      <mesh position={[0, -1.35, -0.05]}>
+        <boxGeometry args={[0.26, 0.55, 0.2]} />
+        <meshStandardMaterial color={body} roughness={0.5} metalness={0.25} />
+      </mesh>
+      <mesh position={[0, 0, -0.04]}>
+        <boxGeometry args={[3.5, 2.2, 0.16]} />
+        <meshStandardMaterial color={body} roughness={0.45} metalness={0.3} />
+      </mesh>
+      <mesh position={[0, 0, 0.052]}>
+        <planeGeometry args={[3.24, 1.94]} />
+        <meshBasicMaterial color={accent} />
+      </mesh>
+      <mesh position={[0, 0, 0.06]} ref={panelRef}>
+        <planeGeometry args={[3.16, 1.86]} />
+        <meshStandardMaterial
+          color="#05070b"
+          emissive={accent}
+          emissiveIntensity={0.5}
+          toneMapped={false}
+        />
+      </mesh>
     </group>
   );
 }
 
-function Scene({ accent, palette, still, endZ }) {
+function Scene({ accent, palette, phase, still, endZ }) {
+  const keyRef = useRef(null);
+  const ambientRef = useRef(null);
+
+  useFrame((_, delta) => {
+    // The room lifts with the panel, so the hand-off into the portfolio is a
+    // brightening rather than a cut.
+    const lift = phase === 'brighten' ? 3.4 : 1;
+    const ease = Math.min(delta * 4, 1);
+    if (keyRef.current) {
+      keyRef.current.intensity +=
+        (palette.key * lift - keyRef.current.intensity) * ease;
+    }
+    if (ambientRef.current) {
+      ambientRef.current.intensity +=
+        (palette.ambient * lift - ambientRef.current.intensity) * ease;
+    }
+  });
+
   return (
     <>
-      <CameraRig still={still} endZ={endZ} />
-      <ambientLight intensity={palette.ambient} />
-      <directionalLight position={[2, 4, 6]} intensity={palette.key} />
+      <CameraRig phase={phase} endZ={endZ} still={still} />
+      <ambientLight ref={ambientRef} intensity={palette.ambient} />
+      <directionalLight ref={keyRef} position={[2, 4, 6]} intensity={palette.key} />
       <directionalLight position={[-5, 1, 2]} intensity={0.3} />
-      {/* Bounce off the panel, so the desk is lit by the machine itself. */}
       <pointLight position={[0, 0.2, 1.6]} intensity={palette.screen} color={accent} distance={9} />
       <pointLight position={[0, 2.3, -1.4]} intensity={0.8} color="#ffa33d" distance={9} />
 
       <Room accent={accent} wall={palette.wall} floor={palette.floor} />
       <Desk accent={accent} desk={palette.desk} body={palette.body} />
-      <Monitor accent={accent} body={palette.body} still={still} />
+      <Monitor accent={accent} body={palette.body} phase={phase} />
     </>
   );
 }
@@ -353,18 +345,33 @@ function Scene({ accent, palette, still, endZ }) {
 export default function IntroGate({ onEnter }) {
   const { theme } = useTheme();
   const { language, t } = useLanguage();
-  const [ready, setReady] = useState(false);
+  const [phase, setPhase] = useState('idle');
   const [fit, setFit] = useState(1);
   const stillRef = useRef(prefersReducedMotion());
   const stageRef = useRef(null);
+  const enteredRef = useRef(false);
+
+  const enterNow = useCallback(() => {
+    if (enteredRef.current) return;
+    enteredRef.current = true;
+    onEnter();
+  }, [onEnter]);
+
+  const begin = useCallback(() => {
+    // Reduced motion gets the destination, not the journey.
+    if (stillRef.current) {
+      enterNow();
+      return;
+    }
+    setPhase((current) => (current === 'idle' ? 'zooming' : current));
+  }, [enterNow]);
 
   useEffect(() => {
     /*
       r3f measures its canvas from the container via ResizeObserver. The gate
       mounts on the very first render, before the fixed-position stage has
       been laid out, and that first measurement can be missed -- leaving the
-      canvas at its 300x150 default while the stage fills the viewport. A
-      resize nudge forces a fresh read.
+      canvas at its 300x150 default while the stage fills the viewport.
     */
     const nudge = window.setTimeout(
       () => window.dispatchEvent(new Event('resize')),
@@ -375,19 +382,24 @@ export default function IntroGate({ onEnter }) {
 
   useEffect(() => {
     /*
-      The entry control is revealed on a timer, deliberately not from the
-      render loop. If WebGL is unavailable, the context is lost, or the loop
-      stalls, the fly-in never finishes -- and gating the only way forward on
-      that would strand the visitor on a blank page.
+      The sequence advances on timers rather than from the render loop. If
+      WebGL is unavailable or the loop stalls, the camera never arrives --
+      and driving the hand-off from that would strand the visitor here.
     */
-    if (stillRef.current) {
-      setReady(true);
-      return undefined;
-    }
+    const next = {
+      zooming: ['loading', ZOOM_SECONDS],
+      loading: ['brighten', LOAD_SECONDS],
+      brighten: [null, BRIGHT_SECONDS],
+    }[phase];
+    if (!next) return undefined;
 
-    const timer = window.setTimeout(() => setReady(true), READY_SECONDS * 1000);
+    const [target, seconds] = next;
+    const timer = window.setTimeout(
+      () => (target ? setPhase(target) : enterNow()),
+      seconds * 1000
+    );
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [phase, enterNow]);
 
   const measure = useCallback(() => {
     const stage = stageRef.current;
@@ -397,14 +409,12 @@ export default function IntroGate({ onEnter }) {
     if (!clientWidth || !clientHeight) return;
 
     /*
-      A fixed camera distance crops the machine on a narrow window, so the
-      settle point pulls back until the panel fits. --intro-fit tracks how
-      much smaller the panel ends up on screen, so the entry control can
-      shrink with it rather than bursting out of the frame.
+      A fixed settle distance crops the machine on a narrow window, so it
+      pulls back until the panel fits. --intro-fit tracks how much smaller
+      the panel lands, so the boot readout scales with it.
     */
     const aspect = clientWidth / clientHeight;
-    const z = Math.max(6, 5.9 / Math.max(aspect, 0.3));
-    setFit(6 / z);
+    setFit(6 / Math.max(6, 5.9 / Math.max(aspect, 0.3)));
   }, []);
 
   useEffect(() => {
@@ -438,18 +448,19 @@ export default function IntroGate({ onEnter }) {
   return (
     <div
       className="intro-gate"
-      data-ready={ready ? 'true' : 'false'}
+      data-phase={phase}
       style={{ '--intro-fit': fit }}
     >
       <div className="intro-stage" ref={stageRef} aria-hidden="true">
         <Canvas
           dpr={[1, 1.5]}
-          camera={{ position: CAMERA_START, fov: 40 }}
+          camera={{ position: [1.4, 0.5, 7.4], fov: 40 }}
           gl={{ antialias: true, alpha: true }}
         >
           <Scene
             accent={accent}
             palette={palette}
+            phase={phase}
             still={stillRef.current}
             endZ={6 / Math.max(fit, 0.001)}
           />
@@ -457,21 +468,19 @@ export default function IntroGate({ onEnter }) {
       </div>
 
       {/*
-        Sits over the panel in normal DOM rather than inside the canvas, so it
-        stays real text: selectable, crisp at any zoom, and reachable by
-        keyboard and screen readers without a WebGL detour.
+        Ordinary DOM over the canvas rather than anything inside it, so the
+        title and the way in stay real text: crisp at any zoom and reachable
+        by keyboard and screen readers without a WebGL detour.
       */}
-      <div className="intro-screen-ui">
-        <p className="intro-screen-title" aria-hidden="true">
-          SURACHET PANTO
+      <div className="intro-menu">
+        <p className="intro-menu-title">
+          SURACHET<span>.</span>
         </p>
-        <p className="intro-screen-sub" aria-hidden="true">
-          SOFTWARE ENGINEER
-        </p>
+        <p className="intro-menu-sub">SOFTWARE ENGINEER // PORTFOLIO</p>
         <button
           type="button"
           className="intro-next"
-          onClick={onEnter}
+          onClick={begin}
           lang={language}
           aria-label={t('intro_enter')}
         >
@@ -480,10 +489,25 @@ export default function IntroGate({ onEnter }) {
         </button>
       </div>
 
+      {/*
+        Centred because the camera settles dead on-axis with the panel on the
+        world origin, so the screen always lands on the centre of the canvas.
+      */}
+      <div className="intro-boot" aria-hidden="true">
+        <p>
+          <LocalizedText i18nKey="intro_loading" />
+        </p>
+        <span className="intro-boot-bar">
+          <i />
+        </span>
+      </div>
+
+      <div className="intro-flash" aria-hidden="true" />
+
       <button
         type="button"
         className="intro-skip"
-        onClick={onEnter}
+        onClick={enterNow}
         lang={language}
       >
         <LocalizedText i18nKey="intro_skip" />

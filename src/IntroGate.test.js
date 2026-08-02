@@ -1,22 +1,22 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import IntroGate, {
+  BRIGHT_SECONDS,
   INTRO_SESSION_KEY,
-  READY_SECONDS,
+  LOAD_SECONDS,
+  ZOOM_SECONDS,
   hasSeenIntro,
   markIntroSeen,
 } from './IntroGate';
 import { LanguageProvider } from './LanguageSystem';
 import { ThemeProvider } from './ThemeSystem';
 
-// The assembly itself needs WebGL, which jsdom has no answer for. The entry
-// control deliberately does not depend on it, which is what these cover.
 // Stands in for the whole 3D subtree. Rendering the children would hand r3f
 // primitives like <ambientLight> to the DOM renderer, which only produces
 // casing warnings -- the scene is not what these tests are about.
 jest.mock('@react-three/fiber', () => ({
   Canvas: () => <div data-testid="intro-canvas" />,
   useFrame: () => {},
-  useThree: () => ({ viewport: { width: 8, height: 5 } }),
+  useThree: () => ({ camera: {}, viewport: { width: 8, height: 5 } }),
 }));
 
 const renderGate = (onEnter = jest.fn()) => {
@@ -27,8 +27,17 @@ const renderGate = (onEnter = jest.fn()) => {
       </LanguageProvider>
     </ThemeProvider>
   );
-  return { ...utils, onEnter };
+  return {
+    ...utils,
+    onEnter,
+    gate: utils.container.querySelector('.intro-gate'),
+  };
 };
+
+const advance = (seconds) =>
+  act(() => {
+    jest.advanceTimersByTime(seconds * 1000 + 50);
+  });
 
 beforeEach(() => {
   window.sessionStorage.clear();
@@ -49,53 +58,79 @@ afterEach(() => {
   window.sessionStorage.clear();
 });
 
-test('reveals the entry control on a timer rather than from the render loop', () => {
-  const { container } = renderGate();
-  const gate = container.querySelector('.intro-gate');
+test('waits on the visitor indefinitely instead of entering on its own', () => {
+  const { gate, onEnter } = renderGate();
 
-  // Hidden while the machine assembles...
-  expect(gate).toHaveAttribute('data-ready', 'false');
+  expect(gate).toHaveAttribute('data-phase', 'idle');
 
-  act(() => {
-    jest.advanceTimersByTime(READY_SECONDS * 1000 + 100);
-  });
-
-  // ...and shown purely on elapsed time, so a stalled or absent WebGL
-  // context can never leave the visitor with no way forward.
-  expect(gate).toHaveAttribute('data-ready', 'true');
+  // The room drifts for as long as it takes; nothing advances until asked.
+  advance(60);
+  expect(gate).toHaveAttribute('data-phase', 'idle');
+  expect(onEnter).not.toHaveBeenCalled();
 });
 
-test('offers a way out from the first frame, before the machine is built', () => {
-  const { onEnter } = renderGate();
-
-  fireEvent.click(screen.getByRole('button', { name: 'Skip intro' }));
-  expect(onEnter).toHaveBeenCalledTimes(1);
-});
-
-test('enters the portfolio from the screen control', () => {
-  const { onEnter } = renderGate();
-  act(() => {
-    jest.advanceTimersByTime(READY_SECONDS * 1000 + 100);
-  });
+/*
+  useFrame is mocked to never fire, so this also stands as the proof that the
+  sequence runs on timers rather than the render loop: if any step waited on
+  the 3D loop it would stall here instead of reaching the hand-off.
+*/
+test('runs zoom, load and brighten in order before handing over', () => {
+  const { gate, onEnter } = renderGate();
 
   fireEvent.click(screen.getByRole('button', { name: 'Enter the portfolio' }));
+  expect(gate).toHaveAttribute('data-phase', 'zooming');
+  expect(onEnter).not.toHaveBeenCalled();
+
+  advance(ZOOM_SECONDS);
+  expect(gate).toHaveAttribute('data-phase', 'loading');
+  expect(onEnter).not.toHaveBeenCalled();
+
+  advance(LOAD_SECONDS);
+  expect(gate).toHaveAttribute('data-phase', 'brighten');
+  expect(onEnter).not.toHaveBeenCalled();
+
+  // Only once the room has blown out does the portfolio take over.
+  advance(BRIGHT_SECONDS);
   expect(onEnter).toHaveBeenCalledTimes(1);
 });
 
-test('skips the build entirely when reduced motion is requested', () => {
+test('offers a way out part-way through the sequence', () => {
+  const { onEnter } = renderGate();
+  const skip = screen.getByRole('button', { name: 'Skip intro' });
+
+  fireEvent.click(screen.getByRole('button', { name: 'Enter the portfolio' }));
+  advance(ZOOM_SECONDS);
+
+  fireEvent.click(skip);
+  expect(onEnter).toHaveBeenCalledTimes(1);
+});
+
+test('hands over only once, however the visitor gets there', () => {
+  const { onEnter } = renderGate();
+
+  // Skipping mid-sequence must not leave the pending timer to fire a second
+  // hand-off underneath the portfolio.
+  fireEvent.click(screen.getByRole('button', { name: 'Enter the portfolio' }));
+  advance(ZOOM_SECONDS + LOAD_SECONDS);
+  fireEvent.click(screen.getByRole('button', { name: 'Skip intro' }));
+  advance(BRIGHT_SECONDS + 5);
+
+  expect(onEnter).toHaveBeenCalledTimes(1);
+});
+
+test('skips straight through when reduced motion is requested', () => {
   window.matchMedia.mockReturnValue({
     matches: true,
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
   });
+  const { onEnter, gate } = renderGate();
 
-  const { container } = renderGate();
+  fireEvent.click(screen.getByRole('button', { name: 'Enter the portfolio' }));
 
-  // Ready on the first paint, with no timer to wait through.
-  expect(container.querySelector('.intro-gate')).toHaveAttribute(
-    'data-ready',
-    'true'
-  );
+  // No fly-in, no boot sequence -- the destination, not the journey.
+  expect(onEnter).toHaveBeenCalledTimes(1);
+  expect(gate).toHaveAttribute('data-phase', 'idle');
 });
 
 test('remembers the intro for the session, and survives blocked storage', () => {

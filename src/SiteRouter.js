@@ -27,26 +27,6 @@ export function resolvePage(pathname) {
   return <NotFoundPage />;
 }
 
-/*
-  The intro only fronts the home page, and only once per browser session.
-  Deep links to /impact or /components are never interrupted, and coming back
-  to the portfolio from one of them does not replay the sequence -- the
-  visitor already watched it.
-*/
-function HomeWithIntro() {
-  const [introDone, setIntroDone] = useState(hasSeenIntro);
-
-  if (introDone) return <App />;
-
-  return (
-    <IntroGate
-      onEnter={() => {
-        markIntroSeen();
-        setIntroDone(true);
-      }}
-    />
-  );
-}
 
 function SiteCursorScope({ children }) {
   const { theme } = useTheme();
@@ -67,16 +47,38 @@ function SiteCursorScope({ children }) {
 }
 
 export default function SiteRouter() {
+  const pathname = window.location.pathname;
+  /*
+    The intro only fronts the home page, and only once per browser session.
+    Deep links to /impact or /components are never interrupted, and coming
+    back to the portfolio from one of them does not replay it -- the visitor
+    already watched it.
+  */
+  const [introDone, setIntroDone] = useState(
+    () => !isHomePath(pathname) || hasSeenIntro()
+  );
+  const showIntro = isHomePath(pathname) && !introDone;
+
   return (
     <ThemeProvider>
       <LanguageProvider>
-        <ThemeToggle />
-        <LanguageToggle />
+        {/*
+          Held back until the visitor is through. The intro is a single
+          composed shot, and floating switches over it break that -- they
+          belong to the portfolio, so they arrive with it.
+        */}
+        {!showIntro && <ThemeToggle />}
+        {!showIntro && <LanguageToggle />}
         <SiteCursorScope>
-          {isHomePath(window.location.pathname) ? (
-            <HomeWithIntro />
+          {showIntro ? (
+            <IntroGate
+              onEnter={() => {
+                markIntroSeen();
+                setIntroDone(true);
+              }}
+            />
           ) : (
-            resolvePage(window.location.pathname)
+            resolvePage(pathname)
           )}
         </SiteCursorScope>
       </LanguageProvider>

@@ -1,6 +1,7 @@
 /*
-  Below the theme and language switches (z 90) so both stay usable during the
-  intro, and below the grain (z 95) so the texture carries across it too.
+  Below the grain (z 95) so the texture carries across the room too. The
+  theme and language switches are not rendered at all during the intro, so
+  there is nothing above this to collide with.
 */
 .intro-gate {
   position: fixed;
@@ -9,10 +10,7 @@
   overflow: hidden;
   background:
     radial-gradient(circle at 50% 42%, rgba(var(--acid-rgb), 0.08), transparent 22rem),
-    linear-gradient(var(--theme-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--theme-grid) 1px, transparent 1px),
     var(--ink);
-  background-size: auto, 64px 64px, 64px 64px, auto;
 }
 
 .intro-stage {
@@ -21,75 +19,68 @@
 }
 
 /*
-  The monitor is built with its screen centred on the world origin and the
-  camera dead-on, so the panel always projects to the exact centre of the
-  canvas. That is what lets this sit on the screen without tracking anything.
-  --intro-fit mirrors the scale the monitor was given to fit the viewport, so
-  the control shrinks with the machine instead of bursting out of the panel
-  on a narrow window.
+  The waiting menu, off to one side so the room stays the subject. It clears
+  the moment the visitor commits.
 */
-.intro-screen-ui {
+.intro-menu {
   position: absolute;
   top: 50%;
-  left: 50%;
+  right: clamp(1.5rem, 7vw, 6rem);
   display: grid;
-  gap: calc(0.5rem * var(--intro-fit, 1));
-  place-items: center;
-  transform: translate(-50%, -50%);
+  gap: 0.55rem;
+  justify-items: end;
+  transform: translateY(-50%);
+  transition: opacity 420ms ease, transform 420ms ease;
+}
+
+.intro-gate:not([data-phase='idle']) .intro-menu {
   opacity: 0;
-  transition: opacity 600ms ease;
+  transform: translateY(-50%) translateX(1.5rem);
   pointer-events: none;
 }
 
-.intro-screen-title,
-.intro-screen-sub {
+.intro-menu-title {
   margin: 0;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.intro-screen-title {
   color: var(--paper);
   font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-  font-size: calc(clamp(1.4rem, 4.6vw, 2.6rem) * var(--intro-fit, 1));
+  font-size: clamp(2.6rem, 7vw, 5rem);
   font-weight: 400;
-  letter-spacing: -0.03em;
-  line-height: 1;
+  letter-spacing: -0.045em;
+  line-height: 0.9;
   text-transform: uppercase;
 }
 
-.intro-screen-sub {
-  margin-bottom: calc(0.6rem * var(--intro-fit, 1));
-  color: var(--paper-muted);
-  font-size: calc(clamp(0.5rem, 1.5vw, 0.62rem) * var(--intro-fit, 1));
-  font-weight: 700;
-  letter-spacing: 0.3em;
+.intro-menu-title span {
+  color: var(--accent-text);
 }
 
-.intro-gate[data-ready='true'] .intro-screen-ui {
-  opacity: 1;
-  pointer-events: auto;
+.intro-menu-sub {
+  margin: 0 0 1.4rem;
+  color: var(--paper-muted);
+  font-size: clamp(0.52rem, 1.5vw, 0.62rem);
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
 }
 
 /*
-  Only the padding follows --intro-fit. Scaling the type with it too drove
-  the label down to a few pixels on a phone, and the whole control under the
-  44px minimum tap target -- so size is floored independently of how far the
-  machine had to shrink to fit.
+  Type and hit area are floored independently of --intro-fit. Scaling them
+  with the scene drove the control under the 44px minimum tap target on a
+  phone, with type at a few pixels.
 */
 .intro-next {
   display: inline-flex;
-  gap: 0.7em;
+  gap: 0.8em;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  min-width: 44px;
+  min-height: 48px;
+  min-width: 48px;
   border: 1px solid var(--acid);
-  padding: 0.85em calc(1.1em + 0.6em * var(--intro-fit, 1));
+  padding: 0.9em 1.7em;
   background: transparent;
   color: var(--acid);
   font: inherit;
-  font-size: clamp(0.68rem, 2.2vw, 0.78rem);
+  font-size: clamp(0.68rem, 2.2vw, 0.8rem);
   font-weight: 800;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -100,19 +91,98 @@
 .intro-next:focus-visible {
   background: var(--acid);
   color: var(--on-accent);
-  box-shadow: 0 0 30px rgba(var(--acid-rgb), 0.35);
+  box-shadow: 0 0 34px rgba(var(--acid-rgb), 0.4);
 }
 
 /*
-  Available from the first frame, not gated on the assembly finishing, so the
-  intro can always be left immediately.
+  The boot readout lands on the panel: the camera settles dead on-axis with
+  the screen on the world origin, so the panel always projects to the exact
+  centre of the canvas. --intro-fit is how much smaller it ends up on a
+  narrow window, where the camera has to pull further back.
+*/
+.intro-boot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  gap: calc(0.75rem * var(--intro-fit, 1));
+  justify-items: center;
+  width: calc(min(38vw, 320px) * var(--intro-fit, 1));
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 380ms ease;
+  pointer-events: none;
+}
+
+.intro-gate[data-phase='loading'] .intro-boot,
+.intro-gate[data-phase='brighten'] .intro-boot {
+  opacity: 1;
+}
+
+.intro-boot p {
+  margin: 0;
+  color: var(--acid);
+  font-size: calc(clamp(0.5rem, 1.5vw, 0.6rem) * var(--intro-fit, 1));
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.intro-boot-bar {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  height: 2px;
+  background: rgba(var(--acid-rgb), 0.22);
+}
+
+.intro-boot-bar i {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: var(--acid);
+}
+
+.intro-gate[data-phase='loading'] .intro-boot-bar i,
+.intro-gate[data-phase='brighten'] .intro-boot-bar i {
+  animation: intro-boot-fill 1.5s cubic-bezier(.3, .9, .4, 1) forwards;
+}
+
+@keyframes intro-boot-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+/*
+  The room blows out into this, and the portfolio is revealed underneath, so
+  the hand-off is a brightening rather than a cut.
+*/
+.intro-flash {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-gate[data-phase='brighten'] .intro-flash {
+  animation: intro-flash-in 750ms ease-in forwards;
+}
+
+@keyframes intro-flash-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/*
+  Available in every phase, so the intro can always be left immediately.
 */
 .intro-skip {
   position: absolute;
   right: clamp(1rem, 4vw, 2.5rem);
   bottom: clamp(1rem, 4vh, 2.5rem);
   border: 0;
-  padding: 0.6rem 0.2rem;
+  padding: 0.7rem 0.4rem;
   background: transparent;
   color: var(--paper-muted);
   font: inherit;
@@ -128,8 +198,28 @@
   color: var(--paper);
 }
 
+@media (max-width: 720px) {
+  /* Centred on a phone: there is no room beside the desk for a side menu. */
+  .intro-menu {
+    right: 50%;
+    justify-items: center;
+    text-align: center;
+    transform: translate(50%, -50%);
+  }
+
+  .intro-gate:not([data-phase='idle']) .intro-menu {
+    transform: translate(50%, -50%) translateY(1rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .intro-screen-ui {
+  .intro-menu,
+  .intro-boot {
     transition-duration: 0.01ms;
+  }
+
+  .intro-boot-bar i,
+  .intro-flash {
+    animation-duration: 0.01ms;
   }
 }

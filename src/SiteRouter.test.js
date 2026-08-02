@@ -113,3 +113,29 @@ test('never interrupts a deep link with the intro', () => {
     view.unmount();
   }
 });
+
+test('holds back the theme and language switches until the intro is through', () => {
+  render(<SiteRouter />);
+
+  // The intro is a single composed shot; floating switches over it break that.
+  expect(screen.getByText('INTRO_GATE')).toBeInTheDocument();
+  expect(screen.queryByRole('switch')).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('group', { name: 'Select website language' })
+  ).not.toBeInTheDocument();
+
+  fireEvent.click(screen.getByText('INTRO_GATE'));
+
+  // They belong to the portfolio, so they arrive with it.
+  expect(screen.getByRole('switch')).toBeInTheDocument();
+  expect(
+    screen.getByRole('group', { name: 'Select website language' })
+  ).toBeInTheDocument();
+});
+
+test('shows the switches immediately on a deep link', () => {
+  window.history.replaceState({}, '', '/impact');
+  render(<SiteRouter />);
+
+  expect(screen.getByRole('switch')).toBeInTheDocument();
+});
