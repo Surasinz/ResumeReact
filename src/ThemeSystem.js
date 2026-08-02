@@ -1,6 +1,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useState,
@@ -14,14 +15,35 @@ const ThemeContext = createContext({
   toggleTheme: () => {},
 });
 
+function hasStoredThemePreference() {
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    return stored === 'dark' || stored === 'light';
+  } catch {
+    return false;
+  }
+}
+
 function readInitialTheme() {
   try {
-    return window.localStorage.getItem(THEME_STORAGE_KEY) === 'dark'
-      ? 'dark'
-      : 'light';
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === 'dark' || stored === 'light') return stored;
   } catch {
-    return 'light';
+    // Fall through to the system preference when storage is unavailable.
   }
+
+  return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches
+    ? 'dark'
+    : 'light';
+}
+
+function updateFavicon(theme) {
+  const link = document.getElementById('dynamic-favicon');
+  if (!link) return;
+
+  link.href = `${process.env.PUBLIC_URL}/${
+    theme === 'dark' ? 'favicon-dark.png' : 'favicon-light.png'
+  }`;
 }
 
 export function ThemeProvider({ children }) {
@@ -34,6 +56,7 @@ export function ThemeProvider({ children }) {
     document
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute('content', theme === 'dark' ? '#0a0a0f' : '#ffffff');
+    updateFavicon(theme);
 
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, theme);
@@ -41,6 +64,26 @@ export function ThemeProvider({ children }) {
       // The theme still works when storage is blocked by the browser.
     }
   }, [theme]);
+
+  useEffect(() => {
+    const media = window.matchMedia?.('(prefers-color-scheme: dark)');
+    if (!media) return undefined;
+
+    const handleChange = (event) => {
+      // Once the visitor has picked a theme explicitly (via the toggle),
+      // that choice wins — the OS preference only drives the theme (and
+      // therefore the favicon) before any manual choice has been saved.
+      if (hasStoredThemePreference()) return;
+      setTheme(event.matches ? 'dark' : 'light');
+    };
+
+    media.addEventListener?.('change', handleChange);
+    media.addListener?.(handleChange);
+    return () => {
+      media.removeEventListener?.('change', handleChange);
+      media.removeListener?.(handleChange);
+    };
+  }, []);
 
   const value = useMemo(
     () => ({
