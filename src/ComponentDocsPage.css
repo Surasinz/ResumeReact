@@ -768,8 +768,24 @@
   box-shadow: 0 32px 80px rgba(0, 0, 0, 0.42);
 }
 
+/*
+  The layer ships at z-index -1 so it sits behind the site content. Nothing
+  in this frame's ancestry establishes a stacking context, so that negative
+  level drops it behind .preview-box's opaque background and the smoke
+  disappears entirely. Pull it back to the frame's own level.
+*/
 .docs-live-frame .pixel-liquid-background {
   position: absolute;
+  z-index: 0;
+}
+
+/*
+  The light theme damps this layer to 0.32 because it is competing with copy
+  on a white page. The preview stage stays dark in both themes, so that
+  damping would only make the demo invisible here.
+*/
+.component-docs-page .docs-live-frame .pixel-liquid-background.is-enabled {
+  opacity: 1;
 }
 
 .docs-frame-hint {
