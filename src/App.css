@@ -872,6 +872,22 @@ body[data-language='th'] .about-lead {
   font-size: 0.75rem;
 }
 
+/*
+  The explicit height is load-bearing, not styling. r3f sizes its canvas from
+  the parent, so a parent that is in turn sized by its content gives the two
+  a feedback loop and the canvas grows every frame.
+  See github.com/pmndrs/react-three-fiber/issues/2861
+
+  pointer-events stays off so this decorative band can never swallow a click;
+  TechCore reads the pointer from window instead.
+*/
+.tech-core {
+  position: relative;
+  height: clamp(230px, 32vw, 340px);
+  margin-bottom: 2.5rem;
+  pointer-events: none;
+}
+
 .skills-marquee {
   display: grid;
   gap: 1px;

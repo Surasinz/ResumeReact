@@ -3,6 +3,7 @@ import App from './App';
 import { THEME_STORAGE_KEY, ThemeProvider } from './ThemeSystem';
 
 jest.mock('./HelmetViewer', () => () => <div data-testid="helmet-viewer-mock" />);
+jest.mock('./TechCore', () => () => <div data-testid="tech-core-mock" />);
 
 const createCanvasContext = () => ({
   clearRect: jest.fn(),

@@ -3,6 +3,7 @@ import './App.css';
 import MatrixRainBackground from './MatrixRainBackground';
 import PixelLiquidBackground from './PixelLiquidBackground';
 import HelmetViewer from './HelmetViewer';
+import TechCore from './TechCore';
 import WebShimeji from './shimeji/WebShimeji';
 import ViewSidebar from './ViewSidebar';
 import { useTheme } from './ThemeSystem';
@@ -877,6 +878,7 @@ function App() {
 
         <section className="skills section" id="skills">
           <SectionHeading number="04" eyebrowKey="technical_skills" titleKey="skills_title" />
+          <TechCore />
           <div className="skills-marquee">
             <SkillMarquee labelKey="programming_languages" items={programmingLanguages} />
             <SkillMarquee labelKey="technologies_tools" items={tools} reverse />
