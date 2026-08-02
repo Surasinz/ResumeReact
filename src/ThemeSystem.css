@@ -8,7 +8,9 @@ body[data-theme='light'] {
   --acid-rgb: 57, 255, 20;
   --accent-text: #147000;
   --on-accent: #071007;
-  --electric: #007f89;
+  /* Deep enough to clear 4.5:1 body-text contrast even over the densest
+     part of the liquid wash, where #007f89 only reached 3.92:1. */
+  --electric: #006b74;
   --violet: #7256ce;
   --line: rgba(18, 18, 18, 0.14);
   --theme-panel: rgba(255, 255, 255, 0.93);
@@ -108,10 +110,16 @@ body[data-theme='light'] .outline-text {
   -webkit-text-stroke-color: #121212;
 }
 
+/*
+  .timeline-content is deliberately absent here. Unlike the others it is a
+  bare grid cell -- no padding, no border, no background of its own -- so
+  filling it painted a hard white rectangle clamped to the text edges rather
+  than a card. The timeline is an open editorial list in both themes; rows
+  are separated by .timeline-item's rule, not by panels.
+*/
 body[data-theme='light'] .floating-label,
 body[data-theme='light'] .availability,
 body[data-theme='light'] .skill-pill,
-body[data-theme='light'] .timeline-content,
 body[data-theme='light'] .education-card,
 body[data-theme='light'] .project-card {
   border-color: var(--line);
@@ -119,6 +127,11 @@ body[data-theme='light'] .project-card {
   box-shadow:
     0 1px 2px rgba(18, 18, 18, 0.04),
     0 18px 48px rgba(18, 18, 18, 0.09);
+}
+
+/* The dark theme's white hover tint is invisible on paper. */
+body[data-theme='light'] .timeline-item:hover {
+  background: rgba(18, 18, 18, 0.028);
 }
 
 /*
