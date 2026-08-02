@@ -3,7 +3,7 @@ import ComponentDocsPage from './ComponentDocsPage';
 import { ImpactPage, InterviewPage } from './CyberPages';
 import GuestbookGate from './GuestbookGate';
 import NotFoundPage from './NotFoundPage';
-import { ThemeProvider, ThemeToggle } from './ThemeSystem';
+import { ThemeProvider, ThemeToggle, useTheme } from './ThemeSystem';
 import {
   LanguageProvider,
   LanguageToggle,
@@ -20,15 +20,32 @@ export function resolvePage(pathname) {
   return <NotFoundPage />;
 }
 
+function SiteCursorScope({ children }) {
+  const { theme } = useTheme();
+
+  return (
+    <div
+      className="language-content"
+      lang="en"
+      style={{
+        '--cursor-default': `url("${process.env.PUBLIC_URL}/${theme === 'dark' ? 'cursor-dark.png' : 'cursor.png'}") 3 3, auto`,
+        '--cursor-hand': `url("${process.env.PUBLIC_URL}/${theme === 'dark' ? 'hand-dark.png' : 'hand.png'}") 4 4, pointer`,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 export default function SiteRouter() {
   return (
     <ThemeProvider>
       <LanguageProvider>
         <ThemeToggle />
         <LanguageToggle />
-        <div className="language-content" lang="en">
+        <SiteCursorScope>
           {resolvePage(window.location.pathname)}
-        </div>
+        </SiteCursorScope>
       </LanguageProvider>
     </ThemeProvider>
   );

@@ -18,8 +18,13 @@ html[lang='th'] [lang='th'] :is(h1, h2, h3) {
     Tahoma,
     sans-serif;
   font-variation-settings: 'wght' 820;
-  letter-spacing: -0.035em;
-  line-height: 1.08;
+  /*
+    Latin condensed headlines can take tight tracking; Thai combining tone
+    marks and vowels can't — anything much past this crowds them into the
+    next character at the large sizes these headings render at.
+  */
+  letter-spacing: -0.01em;
+  line-height: 1.2;
   text-wrap: balance;
 }
 

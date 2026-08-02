@@ -59,6 +59,41 @@ function ArrowIcon() {
   return <span aria-hidden="true">↗</span>;
 }
 
+function useMagneticHover(strength = 0.25, maxOffset = 10) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
+    if (window.matchMedia?.('(pointer: coarse)').matches) return undefined;
+
+    const clamp = (value) => Math.max(-maxOffset, Math.min(maxOffset, value));
+
+    const handleMouseMove = (event) => {
+      const bounds = el.getBoundingClientRect();
+      const x = event.clientX - (bounds.left + bounds.width / 2);
+      const y = event.clientY - (bounds.top + bounds.height / 2);
+      el.style.setProperty('--magnet-x', `${clamp(x * strength)}px`);
+      el.style.setProperty('--magnet-y', `${clamp(y * strength)}px`);
+    };
+
+    const handleMouseLeave = () => {
+      el.style.setProperty('--magnet-x', '0px');
+      el.style.setProperty('--magnet-y', '0px');
+    };
+
+    el.addEventListener('mousemove', handleMouseMove);
+    el.addEventListener('mouseleave', handleMouseLeave);
+    return () => {
+      el.removeEventListener('mousemove', handleMouseMove);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [strength, maxOffset]);
+
+  return ref;
+}
+
 function SectionHeading({ number, eyebrowKey, titleKey }) {
   return (
     <div className="section-heading" data-reveal>
@@ -167,6 +202,131 @@ function ProjectVisual() {
         <div className="detection-label">Helmet · 98.6%</div>
       </div>
     </div>
+  );
+}
+
+function useCountUp(target, { decimals = 0, duration = 1200 } = {}) {
+  const ref = useRef(null);
+  const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+
+    if (
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ||
+      !('IntersectionObserver' in window)
+    ) {
+      setValue(target);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          observer.unobserve(entry.target);
+
+          const start = performance.now();
+          const tick = (now) => {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            setValue(target * eased);
+            if (progress < 1) requestAnimationFrame(tick);
+            else setValue(target);
+          };
+          requestAnimationFrame(tick);
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [target, duration]);
+
+  return [ref, value.toFixed(decimals)];
+}
+
+function StatCounter({ target, decimals = 0, suffix = '' }) {
+  const [ref, value] = useCountUp(target, { decimals });
+
+  return (
+    <strong ref={ref}>
+      {value}
+      {suffix}
+    </strong>
+  );
+}
+
+const SCRAMBLE_CHARS = '!<>-_\\/[]{}=+*^?#01';
+
+function useScrambleText(text, { duration = 700, delay = 0 } = {}) {
+  const [display, setDisplay] = useState(text);
+
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setDisplay(text);
+      return undefined;
+    }
+
+    let start = null;
+    let frame = null;
+
+    const step = (now) => {
+      if (start === null) start = now;
+      const progress = Math.min((now - start) / duration, 1);
+      const revealCount = Math.floor(progress * text.length);
+
+      setDisplay(
+        text
+          .split('')
+          .map((char, index) => {
+            if (char === ' ' || index < revealCount) return char;
+            return SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+          })
+          .join('')
+      );
+
+      if (progress < 1) {
+        frame = requestAnimationFrame(step);
+      } else {
+        setDisplay(text);
+      }
+    };
+
+    const timer = window.setTimeout(() => {
+      frame = requestAnimationFrame(step);
+    }, delay);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (frame !== null) cancelAnimationFrame(frame);
+    };
+  }, [text, duration, delay]);
+
+  return display;
+}
+
+function ScrambleText({ text, delay, ...props }) {
+  const display = useScrambleText(text, { delay });
+
+  return (
+    <span {...props} aria-label={text}>
+      {display}
+    </span>
+  );
+}
+
+function ScrambleLocalizedText({ i18nKey, delay, ...props }) {
+  const { language, t } = useLanguage();
+  const text = t(i18nKey);
+  const display = useScrambleText(text, { delay });
+
+  return (
+    <span {...props} lang={language} aria-label={text}>
+      {display}
+    </span>
   );
 }
 
@@ -295,6 +455,8 @@ function App() {
   const navRef = useRef(null);
   const navHoverRef = useRef(null);
   const navFocusRef = useRef(null);
+  const primaryButtonRef = useMagneticHover();
+  const secondaryButtonRef = useMagneticHover();
   const navInteractionTypeRef = useRef(null);
 
   useEffect(() => {
@@ -404,6 +566,31 @@ function App() {
     return () => {
       isMounted.current = false;
       window.clearTimeout(copyResetTimer.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return undefined;
+
+    const root = document.documentElement;
+    let frame = null;
+
+    const updateParallax = () => {
+      frame = null;
+      const scrollY = window.scrollY;
+      root.style.setProperty('--parallax-bg', `${Math.min(scrollY * 0.05, 40)}px`);
+      root.style.setProperty('--parallax-orbit', `${Math.min(scrollY * 0.12, 90)}px`);
+    };
+
+    const handleScroll = () => {
+      if (frame === null) frame = window.requestAnimationFrame(updateParallax);
+    };
+
+    updateParallax();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (frame !== null) window.cancelAnimationFrame(frame);
     };
   }, []);
 
@@ -556,12 +743,13 @@ function App() {
               <LocalizedText i18nKey="availability" />
             </div>
             <h1 data-reveal>
-              <LocalizedText
+              <ScrambleLocalizedText
                 className="hero-greeting"
                 i18nKey="hero_greeting"
+                delay={0}
               />
-              <span className="hero-name">Surachet</span>
-              <span className="outline-text">Panto.</span>
+              <ScrambleText className="hero-name" text="Surachet" delay={140} />
+              <ScrambleText className="outline-text" text="Panto." delay={280} />
             </h1>
             <LocalizedText
               as="p"
@@ -570,11 +758,11 @@ function App() {
               i18nKey="hero_subtitle"
             />
             <div className="hero-actions" data-reveal>
-              <a className="button button-primary" href="#projects">
+              <a className="button button-primary" href="#projects" ref={primaryButtonRef}>
                 <LocalizedText i18nKey="view_projects" />{' '}
                 <ArrowIcon />
               </a>
-              <a className="button button-secondary" href="#contact">
+              <a className="button button-secondary" href="#contact" ref={secondaryButtonRef}>
                 <LocalizedText i18nKey="contact_btn" />
               </a>
             </div>
@@ -633,9 +821,9 @@ function App() {
             </div>
           </div>
           <div className="stats" data-reveal>
-            <div><strong>3</strong><LocalizedText i18nKey="stat_roles" /></div>
-            <div><strong>15+</strong><LocalizedText i18nKey="stat_tools" /></div>
-            <div><strong>3.62</strong><LocalizedText i18nKey="stat_gpa" /></div>
+            <div><StatCounter target={3} /><LocalizedText i18nKey="stat_roles" /></div>
+            <div><StatCounter target={15} suffix="+" /><LocalizedText i18nKey="stat_tools" /></div>
+            <div><StatCounter target={3.62} decimals={2} /><LocalizedText i18nKey="stat_gpa" /></div>
           </div>
         </section>
 

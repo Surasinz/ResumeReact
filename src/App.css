@@ -46,6 +46,7 @@ a {
   left: 0;
   opacity: 0;
   pointer-events: none;
+  transform: translateY(var(--parallax-bg, 0px));
   transition: opacity 300ms ease;
 }
 
@@ -377,6 +378,20 @@ body[data-language='th'] .hero-greeting {
   letter-spacing: -0.045em;
 }
 
+/*
+  .about-lead isn't covered by LanguageSystem.css's h1/h2/h3 Thai rule, so it
+  still inherits this file's Latin-tuned -0.05em letter-spacing / 1.08
+  line-height at a ~50px size, which crowds Thai tone marks. Loosen both
+  without touching font-family — Noto Sans Thai Variable (set by
+  LanguageSystem.css's broader `.language-content [lang='th']` rule) must
+  keep winning here, or Thai silently falls back to a font with no Thai
+  glyphs.
+*/
+body[data-language='th'] .about-lead {
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
 .hero h1 > .hero-name {
   color: var(--accent-text);
 }
@@ -412,12 +427,13 @@ body[data-language='th'] .hero-greeting {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+  transform: translate(var(--magnet-x, 0px), var(--magnet-y, 0px));
+  transition: transform 150ms ease-out, background 180ms ease, color 180ms ease;
 }
 
 .button:hover,
 .button:focus-visible {
-  transform: translateY(-3px);
+  transform: translate(var(--magnet-x, 0px), calc(var(--magnet-y, 0px) - 3px));
 }
 
 .button-primary {
@@ -565,14 +581,14 @@ body[data-language='th'] .hero-greeting {
 .orbit-one {
   width: 650px;
   height: 250px;
-  transform: rotate(-18deg);
+  transform: rotate(-18deg) translateY(var(--parallax-orbit, 0px));
 }
 
 .orbit-two {
   width: 430px;
   height: 620px;
   border-color: rgba(var(--acid-rgb), 0.18);
-  transform: rotate(21deg);
+  transform: rotate(21deg) translateY(calc(var(--parallax-orbit, 0px) * -0.6));
 }
 
 .floating-label {
@@ -1323,7 +1339,7 @@ footer p {
 
 [data-reveal] {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(20px);
   transition: opacity 700ms ease, transform 700ms cubic-bezier(.16,1,.3,1);
   transition-delay: var(--reveal-delay, 0ms);
 }
@@ -1715,19 +1731,18 @@ footer p {
 }
 
 @media (pointer: fine) {
-  .site-shell,
-  .site-shell * {
+  .language-content {
     cursor: var(--cursor-default);
   }
 
-  .site-shell a,
-  .site-shell button,
-  .site-shell [role='button'],
-  .site-shell input,
-  .site-shell select,
-  .site-shell textarea,
-  .site-shell label,
-  .site-shell summary {
+  .language-content a,
+  .language-content button,
+  .language-content [role='button'],
+  .language-content input,
+  .language-content select,
+  .language-content textarea,
+  .language-content label,
+  .language-content summary {
     cursor: var(--cursor-hand);
   }
 }
