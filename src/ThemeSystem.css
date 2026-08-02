@@ -10,8 +10,8 @@ body[data-theme='light'] {
   --on-accent: #071007;
   --electric: #007f89;
   --violet: #7256ce;
-  --line: rgba(18, 18, 18, 0.16);
-  --theme-panel: rgba(255, 255, 255, 0.86);
+  --line: rgba(18, 18, 18, 0.14);
+  --theme-panel: rgba(255, 255, 255, 0.93);
   --theme-panel-solid: #f5f7f8;
   --theme-panel-strong: #e9edef;
   --theme-grid: rgba(18, 18, 18, 0.055);
@@ -57,6 +57,15 @@ body[data-theme='light'] .matrix-background {
 
 body[data-theme='light'] .matrix-background.is-enabled {
   opacity: 0.09;
+}
+
+/*
+  The liquid layer is tuned to glow against near-black. On paper it needs to
+  read as a faint watercolour wash instead, or it competes with the copy for
+  attention and the page stops looking composed.
+*/
+body[data-theme='light'] .pixel-liquid-background.is-enabled {
+  opacity: 0.5;
 }
 
 body[data-theme='light'] .topbar.is-scrolled,
@@ -107,7 +116,40 @@ body[data-theme='light'] .education-card,
 body[data-theme='light'] .project-card {
   border-color: var(--line);
   background-color: var(--theme-panel);
-  box-shadow: 0 18px 48px rgba(18, 18, 18, 0.09);
+  box-shadow:
+    0 1px 2px rgba(18, 18, 18, 0.04),
+    0 18px 48px rgba(18, 18, 18, 0.09);
+}
+
+/*
+  These portal cards were authored dark-only (a hardcoded near-black panel),
+  so on the light theme they read as two holes punched in the page.
+*/
+body[data-theme='light'] .portfolio-portals a {
+  border-color: var(--line);
+  background:
+    linear-gradient(130deg, rgba(0, 127, 137, 0.07), transparent 52%),
+    var(--theme-panel);
+  box-shadow:
+    0 1px 2px rgba(18, 18, 18, 0.04),
+    0 18px 48px rgba(18, 18, 18, 0.09);
+}
+
+body[data-theme='light'] .portfolio-portals a:hover,
+body[data-theme='light'] .portfolio-portals a:focus-visible {
+  border-color: color-mix(in srgb, var(--electric) 45%, transparent);
+  box-shadow:
+    0 1px 2px rgba(18, 18, 18, 0.05),
+    0 24px 60px rgba(18, 18, 18, 0.14);
+}
+
+/*
+  --acid is a neon that only holds up as emitted light on a dark panel; the
+  same value as a glowing hairline on white just looks blown out.
+*/
+body[data-theme='light'] .portfolio-portals a::before {
+  background: var(--accent-text);
+  box-shadow: none;
 }
 
 body[data-theme='dark'] .button-primary,

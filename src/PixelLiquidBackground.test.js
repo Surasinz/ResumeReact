@@ -209,7 +209,11 @@ test('runs the supplied WebGL pipeline and disposes every GPU resource', () => {
   const state = THREE.__mockState;
   const renderer = state.renderers[0];
 
-  expect(LIQUID_PALETTE.at(-1)).toBe('#39ff14');
+  // The light ramp resolves into white so calm fluid disappears into the
+  // page rather than greying it; only the dark ramp bottoms out at black.
+  expect(LIQUID_PALETTE.at(0)).toBe('#ffffff');
+  expect(LIQUID_PALETTE.at(-1)).toBe('#46ad2c');
+  expect(DARK_LIQUID_PALETTE.at(0)).toBe('#000000');
   expect(DARK_LIQUID_PALETTE.at(-1)).toBe('#ff35a2');
   expect(container.querySelector('.pixel-liquid-background canvas')).toBeInTheDocument();
   expect(renderer.options).toEqual({ antialias: false, alpha: true });
@@ -275,6 +279,35 @@ test('builds the WebGL palette with the dark pink accent', () => {
 
   const paletteData = THREE.__mockState.textures[0].image.data;
   expect(Array.from(paletteData.slice(-4))).toEqual([255, 53, 162, 255]);
+});
+
+test('fades calm fluid toward the active theme paper, not always black', () => {
+  const readBgColor = () => {
+    const outputMaterial = THREE.__mockState.materials.find((material) =>
+      material.fragmentShader.includes('fluidColor')
+    );
+    const { x, y, z, w } = outputMaterial.uniforms.bgColor.value;
+    return [x, y, z, w];
+  };
+
+  const light = render(
+    <ThemeProvider>
+      <PixelLiquidBackground enabled />
+    </ThemeProvider>
+  );
+  // White, so idle areas resolve into the page instead of bruising it grey.
+  expect(readBgColor()).toEqual([1, 1, 1, 0]);
+  light.unmount();
+
+  window.localStorage.setItem(THEME_STORAGE_KEY, 'dark');
+  Object.assign(THREE.__mockState, { materials: [] });
+
+  render(
+    <ThemeProvider>
+      <PixelLiquidBackground enabled />
+    </ThemeProvider>
+  );
+  expect(readBgColor()).toEqual([0, 0, 0, 0]);
 });
 
 test('does not start GPU passes until a hidden tab becomes visible', () => {

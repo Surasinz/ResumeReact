@@ -2,12 +2,15 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useTheme } from './ThemeSystem';
 
+// The light palette starts at white, not black: the output shader fades the
+// fluid toward `bgColor` as it calms, so on a light page the ramp has to
+// resolve into the paper colour instead of bruising it grey.
 export const LIQUID_PALETTE = [
-  '#000000',
-  '#061509',
-  '#0b4515',
-  '#159c29',
-  '#39ff14',
+  '#ffffff',
+  '#e9f7e4',
+  '#bce7ae',
+  '#84cf6f',
+  '#46ad2c',
 ];
 
 export const DARK_LIQUID_PALETTE = [
@@ -561,14 +564,21 @@ export default function PixelLiquidBackground({ enabled }) {
 
     const mouse = new MouseGL();
     mouse.init(container);
+    const isDark = theme === 'dark';
     const palette = makePaletteTexture(
-      theme === 'dark' ? DARK_LIQUID_PALETTE : LIQUID_PALETTE
+      isDark ? DARK_LIQUID_PALETTE : LIQUID_PALETTE
     );
     const simulation = new FluidSimulation(gl, mouse);
     const outputUniforms = {
       velocity: { value: simulation.fbos.vel0.texture },
       palette: { value: palette },
-      bgColor: { value: new THREE.Vector4(0, 0, 0, 0) },
+      // Calm fluid fades to bgColor. Keeping this black on a light page is
+      // what turned the idle areas into grey smoke, so it tracks the paper.
+      bgColor: {
+        value: isDark
+          ? new THREE.Vector4(0, 0, 0, 0)
+          : new THREE.Vector4(1, 1, 1, 0),
+      },
       uTime: { value: 0 },
       boundarySpace: { value: new THREE.Vector2() },
     };
