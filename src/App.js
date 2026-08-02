@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import MatrixRainBackground from './MatrixRainBackground';
 import PixelLiquidBackground from './PixelLiquidBackground';
+import HelmetViewer from './HelmetViewer';
 import WebShimeji from './shimeji/WebShimeji';
 import ViewSidebar from './ViewSidebar';
 import { useTheme } from './ThemeSystem';
@@ -193,10 +194,7 @@ function ProjectVisual() {
     >
       <div className="project-visual" ref={visualRef}>
         <div className="scan-grid" />
-        <div className="helmet">
-          <span className="helmet-shell" />
-          <span className="helmet-visor" />
-        </div>
+        <HelmetViewer />
         <span className="detection-corner corner-one" />
         <span className="detection-corner corner-two" />
         <div className="detection-label">Helmet · 98.6%</div>

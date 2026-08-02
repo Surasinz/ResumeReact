@@ -2,6 +2,8 @@ import { act, fireEvent, render, screen, waitFor, within } from '@testing-librar
 import App from './App';
 import { THEME_STORAGE_KEY, ThemeProvider } from './ThemeSystem';
 
+jest.mock('./HelmetViewer', () => () => <div data-testid="helmet-viewer-mock" />);
+
 const createCanvasContext = () => ({
   clearRect: jest.fn(),
   createRadialGradient: jest.fn(() => ({
