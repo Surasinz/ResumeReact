@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
+import { Box3, Vector3 } from 'three';
 import './IntroGate.css';
 import { LocalizedText, useLanguage } from './LanguageSystem';
 import { useTheme } from './ThemeSystem';
@@ -13,6 +15,15 @@ export const INTRO_SESSION_KEY = 'surachet-intro-seen';
   brighten  the room blows out to white and hands over to the portfolio
 */
 export const PHASES = ['idle', 'zooming', 'loading', 'brighten'];
+/*
+  Wide enough to frame the panel from inside the room. At 40 degrees the
+  camera had to stand 2.35 units back to fill the frame, but the room only
+  extends 2.31 in front of the monitor -- so every pose, idle and settled,
+  sat outside the walls looking in.
+*/
+const FOV = 55;
+// How much of the frame the monitor fills once the camera settles.
+const SCREEN_FILL = 0.62;
 export const ZOOM_SECONDS = 1.7;
 export const LOAD_SECONDS = 1.5;
 export const BRIGHT_SECONDS = 0.75;
@@ -54,9 +65,12 @@ function CameraRig({ phase, endZ, still }) {
     if (phase === 'idle') {
       departureRef.current = null;
 
+      // Expressed as fractions of the settle distance, so the wander stays
+      // in proportion to whatever room is loaded rather than to numbers
+      // tuned against one particular set.
       if (still) {
-        camera.position.set(1.4, 0.5, 7.4);
-        lookRef.current = [0, -0.35, -1.2];
+        camera.position.set(endZ * 0.22, endZ * 0.08, endZ * 1.2);
+        lookRef.current = [0, -endZ * 0.05, -endZ * 0.2];
         camera.lookAt(...lookRef.current);
         return;
       }
@@ -64,11 +78,15 @@ function CameraRig({ phase, endZ, still }) {
       // A long, slow wander with three different periods, so the loop never
       // lands back on the same pose and never reads as a repeat.
       camera.position.set(
-        Math.sin(time * 0.13) * 2.4,
-        0.55 + Math.sin(time * 0.1) * 0.42,
-        7.5 + Math.sin(time * 0.07) * 0.55
+        Math.sin(time * 0.13) * endZ * 0.34,
+        endZ * 0.09 + Math.sin(time * 0.1) * endZ * 0.07,
+        endZ * 1.14 + Math.sin(time * 0.07) * endZ * 0.07
       );
-      lookRef.current = [Math.sin(time * 0.11) * 1.35, -0.35, -1.2];
+      lookRef.current = [
+        Math.sin(time * 0.11) * endZ * 0.2,
+        -endZ * 0.05,
+        -endZ * 0.2,
+      ];
       camera.lookAt(...lookRef.current);
       return;
     }
@@ -107,215 +125,112 @@ function CameraRig({ phase, endZ, still }) {
   return null;
 }
 
-function Room({ accent, wall, floor }) {
-  const hexes = [
-    [-4.3, 1.5, 0.85],
-    [-3.5, 0.75, 0.6],
-    [-4.6, 0.05, 0.5],
-    [4.3, 1.6, 0.9],
-    [3.6, 0.85, 0.55],
-    [4.7, 0.1, 0.65],
-  ];
+const ROOM_URL = `${process.env.PUBLIC_URL}/hacker-room.glb`;
 
-  const bulbs = Array.from({ length: 9 }, (_, i) => {
-    const t = i / 8;
-    return [mix(-5, 5, t), 2.55 - Math.sin(t * Math.PI) * 0.45, -1.6];
-  });
+/*
+  The imported room, re-anchored on its own monitor.
+
+  Everything downstream assumes the screen sits on the world origin: the
+  camera settles dead on-axis and the DOM boot readout is positioned against
+  the centre of the canvas. A model authored around some other origin would
+  break that, so rather than hand-place it, the room is measured on load and
+  shifted by whatever puts its monitor at 0,0,0.
+
+  The measurement is taken from the rendered scene rather than the file's own
+  accessor bounds -- those describe the raw meshes, before the node
+  transforms the loader applies, and reading them was what put the helmet
+  model out by a factor of roughly 1700.
+*/
+function HackerRoom({ onMeasured }) {
+  const { scene } = useGLTF(ROOM_URL);
+  const shiftRef = useRef(null);
+  const [turn, setTurn] = useState(0);
+
+  useEffect(() => {
+    const shift = shiftRef.current;
+    if (!shift) return;
+
+    /*
+      Matched on material rather than object name. The loader strips the
+      colons out of the authored names -- tv:pCube1 arrives as
+      tvpCube1_tvlambert2_0 -- so a name pattern written against the file
+      silently matches nothing.
+
+      Several props share the screen material, so the biggest face wins: the
+      main panel, not one of the little monitors dotted around the room.
+      Anchoring on all of them together straddles half the room.
+    */
+    let panel = null;
+    let panelArea = 0;
+    const room = new Box3();
+
+    scene.traverse((child) => {
+      if (!child.isMesh) return;
+      const box = new Box3().setFromObject(child);
+      room.union(box);
+      if (!/tv/i.test(child.material?.name ?? '')) return;
+
+      const size = box.getSize(new Vector3());
+      const area = Math.max(
+        size.x * size.y,
+        size.y * size.z,
+        size.x * size.z
+      );
+      if (area > panelArea) {
+        panelArea = area;
+        panel = box;
+      }
+    });
+
+    const anchor = panel ?? room;
+    const centre = anchor.getCenter(new Vector3());
+    const size = anchor.getSize(new Vector3());
+    shift.position.set(-centre.x, -centre.y, -centre.z);
+
+    /*
+      A panel's thinnest axis is its normal. Which way along that axis it
+      faces is settled by where the rest of the room is -- a screen points
+      into the room it is in, never at the wall behind it.
+    */
+    const facesX = size.x < size.z;
+    const roomCentre = room.getCenter(new Vector3());
+    let rotation = 0;
+    if (facesX) {
+      rotation = roomCentre.x >= centre.x ? -Math.PI / 2 : Math.PI / 2;
+    } else {
+      rotation = roomCentre.z >= centre.z ? 0 : Math.PI;
+    }
+    setTurn(rotation);
+
+    onMeasured({
+      foundPanel: Boolean(panel),
+      // Reported in the orientation the camera will see, so the framing
+      // maths downstream does not have to know which way the room was
+      // turned.
+      screenSize: [facesX ? size.z : size.x, size.y],
+    });
+  }, [scene, onMeasured]);
 
   return (
-    <group>
-      {/*
-        Deep enough that every pose the idle drift reaches is still inside
-        the box; stray outside and the frame opens on empty clear colour.
-      */}
-      <mesh position={[0, -3.6, 2]}>
-        <boxGeometry args={[15, 0.2, 24]} />
-        <meshStandardMaterial color={floor} roughness={0.85} />
-      </mesh>
-      <mesh position={[0, 3.5, 2]}>
-        <boxGeometry args={[15, 0.2, 24]} />
-        <meshStandardMaterial color={wall} roughness={0.9} />
-      </mesh>
-      <mesh position={[0, 0, -2.5]}>
-        <boxGeometry args={[15, 7, 0.2]} />
-        <meshStandardMaterial color={wall} roughness={0.9} />
-      </mesh>
-      <mesh position={[-6.4, 0, 2]}>
-        <boxGeometry args={[0.2, 7, 24]} />
-        <meshStandardMaterial color={wall} roughness={0.9} />
-      </mesh>
-      <mesh position={[6.4, 0, 2]}>
-        <boxGeometry args={[0.2, 7, 24]} />
-        <meshStandardMaterial color={wall} roughness={0.9} />
-      </mesh>
-
-      <mesh position={[0, 1.85, -2.36]}>
-        <planeGeometry args={[3.6, 1.7]} />
-        <meshStandardMaterial
-          color="#0b0b16"
-          emissive={accent}
-          emissiveIntensity={0.18}
-        />
-      </mesh>
-      {Array.from({ length: 8 }, (_, i) => (
-        <mesh key={`slat-${i}`} position={[0, 1.15 + i * 0.2, -2.3]}>
-          <boxGeometry args={[3.6, 0.11, 0.05]} />
-          <meshStandardMaterial color={wall} roughness={0.7} />
-        </mesh>
-      ))}
-
-      {hexes.map(([x, y, intensity], i) => (
-        <mesh
-          key={`hex-${i}`}
-          position={[x, y, -2.34]}
-          rotation={[Math.PI / 2, 0, 0]}
-        >
-          <cylinderGeometry args={[0.42, 0.42, 0.06, 6]} />
-          <meshStandardMaterial
-            color={accent}
-            emissive={accent}
-            emissiveIntensity={intensity}
-            toneMapped={false}
-          />
-        </mesh>
-      ))}
-
-      {bulbs.map(([x, y, z], i) => (
-        <mesh key={`bulb-${i}`} position={[x, y, z]}>
-          <sphereGeometry args={[0.075, 10, 10]} />
-          <meshStandardMaterial
-            color="#ffb45c"
-            emissive="#ffa33d"
-            emissiveIntensity={1.5}
-            toneMapped={false}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-function Desk({ accent, desk, body }) {
-  return (
-    <group>
-      <mesh position={[0, -1.78, 0.15]}>
-        <boxGeometry args={[9, 0.16, 2.8]} />
-        <meshStandardMaterial color={desk} roughness={0.65} />
-      </mesh>
-      {[-4.1, 4.1].map((x) => (
-        <mesh key={`leg-${x}`} position={[x, -2.75, 0.15]}>
-          <boxGeometry args={[0.14, 1.8, 2.6]} />
-          <meshStandardMaterial color={body} roughness={0.6} metalness={0.3} />
-        </mesh>
-      ))}
-      <mesh position={[0, -1.9, 1.5]}>
-        <boxGeometry args={[8.2, 0.05, 0.05]} />
-        <meshStandardMaterial
-          color={accent}
-          emissive={accent}
-          emissiveIntensity={1.4}
-          toneMapped={false}
-        />
-      </mesh>
-
-      <group position={[2.75, -0.98, -0.35]}>
-        <mesh>
-          <boxGeometry args={[0.78, 1.44, 1.3]} />
-          <meshStandardMaterial color="#15151d" roughness={0.5} metalness={0.3} />
-        </mesh>
-        <mesh position={[-0.4, 0, 0.1]}>
-          <boxGeometry args={[0.02, 1.1, 0.06]} />
-          <meshStandardMaterial
-            color={accent}
-            emissive={accent}
-            emissiveIntensity={1.6}
-            toneMapped={false}
-          />
-        </mesh>
+    <group rotation={[0, turn, 0]}>
+      <group ref={shiftRef}>
+        <primitive object={scene} />
       </group>
-
-      <group position={[-2.75, -1.3, -0.1]}>
-        <mesh>
-          <boxGeometry args={[0.86, 0.94, 0.8]} />
-          <meshStandardMaterial color="#cdc7bb" roughness={0.75} />
-        </mesh>
-        <mesh position={[0, 0.12, 0.41]}>
-          <planeGeometry args={[0.58, 0.44]} />
-          <meshStandardMaterial
-            color="#0a0a0f"
-            emissive="#ffd479"
-            emissiveIntensity={0.75}
-            toneMapped={false}
-          />
-        </mesh>
-      </group>
-
-      <mesh position={[0, -1.66, 1.05]} rotation={[-0.06, 0, 0]}>
-        <boxGeometry args={[1.8, 0.06, 0.52]} />
-        <meshStandardMaterial color="#14141c" roughness={0.6} />
-      </mesh>
-      <mesh position={[1.32, -1.65, 1.05]}>
-        <boxGeometry args={[0.22, 0.06, 0.34]} />
-        <meshStandardMaterial color="#14141c" roughness={0.6} />
-      </mesh>
     </group>
   );
 }
 
-function Monitor({ accent, body, phase }) {
-  const panelRef = useRef(null);
-
-  useFrame((_, delta) => {
-    const panel = panelRef.current;
-    if (!panel) return;
-
-    // The panel wakes as the visitor arrives, then blows out with the room.
-    const target =
-      phase === 'brighten' ? 4.2 : phase === 'loading' ? 1.35 : 0.5;
-    panel.material.emissiveIntensity +=
-      (target - panel.material.emissiveIntensity) * Math.min(delta * 4, 1);
-  });
-
-  return (
-    <group>
-      <mesh position={[0, -1.65, -0.05]}>
-        <boxGeometry args={[1.7, 0.09, 0.55]} />
-        <meshStandardMaterial color={body} roughness={0.5} metalness={0.25} />
-      </mesh>
-      <mesh position={[0, -1.35, -0.05]}>
-        <boxGeometry args={[0.26, 0.55, 0.2]} />
-        <meshStandardMaterial color={body} roughness={0.5} metalness={0.25} />
-      </mesh>
-      <mesh position={[0, 0, -0.04]}>
-        <boxGeometry args={[3.5, 2.2, 0.16]} />
-        <meshStandardMaterial color={body} roughness={0.45} metalness={0.3} />
-      </mesh>
-      <mesh position={[0, 0, 0.052]}>
-        <planeGeometry args={[3.24, 1.94]} />
-        <meshBasicMaterial color={accent} />
-      </mesh>
-      <mesh position={[0, 0, 0.06]} ref={panelRef}>
-        <planeGeometry args={[3.16, 1.86]} />
-        <meshStandardMaterial
-          color="#05070b"
-          emissive={accent}
-          emissiveIntensity={0.5}
-          toneMapped={false}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-function Scene({ accent, palette, phase, still, endZ }) {
+function Scene({ accent, palette, phase, still, endZ, onMeasured }) {
   const keyRef = useRef(null);
   const ambientRef = useRef(null);
+  const glowRef = useRef(null);
 
   useFrame((_, delta) => {
+    const ease = Math.min(delta * 4, 1);
+
     // The room lifts with the panel, so the hand-off into the portfolio is a
     // brightening rather than a cut.
     const lift = phase === 'brighten' ? 3.4 : 1;
-    const ease = Math.min(delta * 4, 1);
     if (keyRef.current) {
       keyRef.current.intensity +=
         (palette.key * lift - keyRef.current.intensity) * ease;
@@ -323,6 +238,19 @@ function Scene({ accent, palette, phase, still, endZ }) {
     if (ambientRef.current) {
       ambientRef.current.intensity +=
         (palette.ambient * lift - ambientRef.current.intensity) * ease;
+    }
+
+    /*
+      The panel waking up is done with a light sitting just in front of it
+      rather than by driving the model's own material. The room is somebody
+      else's asset, so keying the effect to a material name in it would break
+      the moment that asset is swapped.
+    */
+    if (glowRef.current) {
+      const target =
+        phase === 'brighten' ? 14 : phase === 'loading' ? 7 : palette.screen;
+      glowRef.current.intensity +=
+        (target - glowRef.current.intensity) * ease;
     }
   });
 
@@ -332,12 +260,17 @@ function Scene({ accent, palette, phase, still, endZ }) {
       <ambientLight ref={ambientRef} intensity={palette.ambient} />
       <directionalLight ref={keyRef} position={[2, 4, 6]} intensity={palette.key} />
       <directionalLight position={[-5, 1, 2]} intensity={0.3} />
-      <pointLight position={[0, 0.2, 1.6]} intensity={palette.screen} color={accent} distance={9} />
-      <pointLight position={[0, 2.3, -1.4]} intensity={0.8} color="#ffa33d" distance={9} />
+      <pointLight
+        ref={glowRef}
+        position={[0, 0, 1.1]}
+        intensity={palette.screen}
+        color={accent}
+        distance={12}
+      />
 
-      <Room accent={accent} wall={palette.wall} floor={palette.floor} />
-      <Desk accent={accent} desk={palette.desk} body={palette.body} />
-      <Monitor accent={accent} body={palette.body} phase={phase} />
+      <Suspense fallback={null}>
+        <HackerRoom onMeasured={onMeasured} />
+      </Suspense>
     </>
   );
 }
@@ -347,9 +280,11 @@ export default function IntroGate({ onEnter }) {
   const { language, t } = useLanguage();
   const [phase, setPhase] = useState('idle');
   const [fit, setFit] = useState(1);
+  const [endZ, setEndZ] = useState(6);
   const stillRef = useRef(prefersReducedMotion());
   const stageRef = useRef(null);
   const enteredRef = useRef(false);
+  const screenRef = useRef(null);
 
   const enterNow = useCallback(() => {
     if (enteredRef.current) return;
@@ -408,14 +343,35 @@ export default function IntroGate({ onEnter }) {
     const { clientWidth, clientHeight } = stage;
     if (!clientWidth || !clientHeight) return;
 
+    const screen = screenRef.current;
+    if (!screen) return;
+
     /*
-      A fixed settle distance crops the machine on a narrow window, so it
-      pulls back until the panel fits. --intro-fit tracks how much smaller
-      the panel lands, so the boot readout scales with it.
+      The settle distance is derived from the monitor the model actually has,
+      not a hand-tuned number, so swapping the room in cannot silently leave
+      the camera framed on the wrong thing or buried in a wall.
     */
     const aspect = clientWidth / clientHeight;
-    setFit(6 / Math.max(6, 5.9 / Math.max(aspect, 0.3)));
+    const tan = Math.tan((FOV / 2) * (Math.PI / 180));
+    const z = Math.max(
+      screen.height / (2 * tan * SCREEN_FILL),
+      screen.width / (2 * tan * aspect * SCREEN_FILL)
+    );
+    setEndZ(z);
+
+    // How wide the panel actually lands, so the boot readout can be sized
+    // against the real thing rather than a guess.
+    const panelPx = (screen.width / (2 * z * tan * aspect)) * clientWidth;
+    setFit(Math.min(Math.max(panelPx / 520, 0.34), 1.4));
   }, []);
+
+  const handleMeasured = useCallback(
+    ({ screenSize: [width, height] }) => {
+      screenRef.current = { width, height };
+      measure();
+    },
+    [measure]
+  );
 
   useEffect(() => {
     measure();
@@ -425,25 +381,10 @@ export default function IntroGate({ onEnter }) {
 
   const isDark = theme === 'dark';
   const accent = isDark ? '#ff35a2' : '#39ff14';
+  // The room brings its own materials, so only the lighting is themed.
   const palette = isDark
-    ? {
-        wall: '#241a33',
-        floor: '#1a1526',
-        desk: '#3a2a20',
-        body: '#15151d',
-        ambient: 0.32,
-        key: 0.55,
-        screen: 2.6,
-      }
-    : {
-        wall: '#e6e3ee',
-        floor: '#d8d5e0',
-        desk: '#b98f68',
-        body: '#d9dee1',
-        ambient: 0.75,
-        key: 1.0,
-        screen: 1.4,
-      };
+    ? { ambient: 0.55, key: 0.7, screen: 3 }
+    : { ambient: 1.1, key: 1.15, screen: 1.8 };
 
   return (
     <div
@@ -454,7 +395,7 @@ export default function IntroGate({ onEnter }) {
       <div className="intro-stage" ref={stageRef} aria-hidden="true">
         <Canvas
           dpr={[1, 1.5]}
-          camera={{ position: [1.4, 0.5, 7.4], fov: 40 }}
+          camera={{ position: [0, 0, endZ], fov: FOV }}
           gl={{ antialias: true, alpha: true }}
         >
           <Scene
@@ -462,7 +403,8 @@ export default function IntroGate({ onEnter }) {
             palette={palette}
             phase={phase}
             still={stillRef.current}
-            endZ={6 / Math.max(fit, 0.001)}
+            endZ={endZ}
+            onMeasured={handleMeasured}
           />
         </Canvas>
       </div>
