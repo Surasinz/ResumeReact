@@ -1,4 +1,5 @@
 import App from './App';
+import Atmosphere from './Atmosphere';
 import ComponentDocsPage from './ComponentDocsPage';
 import { ImpactPage, InterviewPage } from './CyberPages';
 import GuestbookGate from './GuestbookGate';
@@ -33,6 +34,7 @@ function SiteCursorScope({ children }) {
       }}
     >
       {children}
+      <Atmosphere />
     </div>
   );
 }
