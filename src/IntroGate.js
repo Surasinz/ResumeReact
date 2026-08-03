@@ -406,9 +406,14 @@ export default function IntroGate({ onEnter }) {
   const isDark = theme === 'dark';
   const accent = isDark ? '#ff35a2' : '#39ff14';
   // The room brings its own materials, so only the lighting is themed.
+  /*
+    Lit brightly enough for the room's own textures to read. The first pass
+    was dim enough that the colour was technically present but the set still
+    looked washed out, which is indistinguishable from having no colour.
+  */
   const palette = isDark
-    ? { ambient: 0.9, key: 1.1, screen: 0.5, backdrop: '#140f1d' }
-    : { ambient: 1.5, key: 1.5, screen: 0.35, backdrop: '#dedbe6' };
+    ? { ambient: 1.6, key: 1.9, screen: 0.5, backdrop: '#140f1d' }
+    : { ambient: 2.0, key: 2.0, screen: 0.35, backdrop: '#dedbe6' };
 
   return (
     <div
