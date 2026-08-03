@@ -279,11 +279,16 @@ function Scene({ accent, palette, phase, still, endZ, onMeasured }) {
         The room is not a sealed box -- it has an open side and gaps at the
         ceiling -- so some poses see straight past the geometry. With a
         transparent canvas those gaps showed the page behind, reading as
-        black holes punched in the set. An opaque background plus fog turns
-        them into depth instead.
+        black holes punched in the set. An opaque background fills them
+        instead.
+
+        No fog. Fog only tints geometry, so it did nothing for the gaps it
+        was added for, and its near plane landed at 1.82 while the monitor
+        sits 1.88 away -- so the subject and the whole room behind it were
+        being blended toward the backdrop. On the light theme that backdrop
+        is nearly white, which washed the set out completely.
       */}
       <color attach="background" args={[palette.backdrop]} />
-      <fog attach="fog" args={[palette.backdrop, endZ * 1.1, endZ * 3.4]} />
       {/*
         Neutral white. The room carries its own colour in its textures, so a
         tinted key light only pushes the whole set toward one hue.
