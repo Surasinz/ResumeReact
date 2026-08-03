@@ -223,3 +223,20 @@
     animation-duration: 0.01ms;
   }
 }
+
+/* Opt-in diagnostic readout; only rendered when ?diag is in the URL. */
+.intro-diag {
+  position: absolute;
+  z-index: 5;
+  top: clamp(1rem, 3vh, 2rem);
+  left: clamp(1rem, 3vw, 2rem);
+  margin: 0;
+  border: 1px solid var(--acid);
+  padding: 0.9rem 1.1rem;
+  background: rgba(0, 0, 0, 0.82);
+  color: var(--acid);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 0.66rem;
+  line-height: 1.6;
+  white-space: pre;
+}

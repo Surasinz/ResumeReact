@@ -234,7 +234,65 @@ function HackerRoom({ onMeasured }) {
   );
 }
 
-function Scene({ accent, palette, phase, still, endZ, onMeasured }) {
+/*
+  Opt-in readout for diagnosing what a specific machine actually loaded. The
+  room renders correctly everywhere it has been measured, so when a device
+  shows it untextured the useful question is what that device's renderer
+  ended up with -- which is not something logs or screenshots answer. Off
+  unless ?diag is in the URL.
+*/
+function RendererReport({ onReport }) {
+  const { gl, scene } = useThree();
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      let meshes = 0;
+      let textured = 0;
+      let decoded = 0;
+      let firstMaterial = null;
+
+      scene.traverse((child) => {
+        if (!child.isMesh || !child.material) return;
+        meshes += 1;
+        const map = child.material.map;
+        if (map) {
+          textured += 1;
+          if (map.image?.width) decoded += 1;
+        }
+        if (!firstMaterial) {
+          firstMaterial = {
+            name: child.material.name,
+            colour: `#${child.material.color?.getHexString?.() ?? '??'}`,
+            map: map ? `${map.image?.width}x${map.image?.height}` : 'NONE',
+            colorSpace: map?.colorSpace ?? 'n/a',
+          };
+        }
+      });
+
+      const context = gl.getContext?.();
+      const debugInfo = context?.getExtension?.('WEBGL_debug_renderer_info');
+
+      onReport({
+        meshes,
+        textured,
+        decoded,
+        firstMaterial,
+        maxTextureSize: context?.getParameter?.(context.MAX_TEXTURE_SIZE),
+        gpu: debugInfo
+          ? context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+          : 'hidden',
+        webgl2: typeof WebGL2RenderingContext !== 'undefined'
+          && context instanceof WebGL2RenderingContext,
+      });
+    }, 6000);
+
+    return () => window.clearTimeout(id);
+  }, [gl, scene, onReport]);
+
+  return null;
+}
+
+function Scene({ accent, palette, phase, still, endZ, onMeasured, onReport }) {
   const keyRef = useRef(null);
   const ambientRef = useRef(null);
   const glowRef = useRef(null);
@@ -308,6 +366,7 @@ function Scene({ accent, palette, phase, still, endZ, onMeasured }) {
       <Suspense fallback={null}>
         <HackerRoom onMeasured={onMeasured} />
       </Suspense>
+      {onReport && <RendererReport onReport={onReport} />}
     </>
   );
 }
@@ -318,6 +377,8 @@ export default function IntroGate({ onEnter }) {
   const [phase, setPhase] = useState('idle');
   const [fit, setFit] = useState(1);
   const [endZ, setEndZ] = useState(6);
+  const [report, setReport] = useState(null);
+  const wantsReport = window.location.search.includes('diag');
   const stillRef = useRef(prefersReducedMotion());
   const stageRef = useRef(null);
   const enteredRef = useRef(false);
@@ -447,6 +508,7 @@ export default function IntroGate({ onEnter }) {
             still={stillRef.current}
             endZ={endZ}
             onMeasured={handleMeasured}
+            onReport={wantsReport ? setReport : undefined}
           />
         </Canvas>
       </div>
@@ -487,6 +549,25 @@ export default function IntroGate({ onEnter }) {
       </div>
 
       <div className="intro-flash" aria-hidden="true" />
+
+      {wantsReport && (
+        <pre className="intro-diag">
+          {report
+            ? [
+                `meshes        ${report.meshes}`,
+                `with texture  ${report.textured}`,
+                `decoded       ${report.decoded}`,
+                `first mat     ${report.firstMaterial?.name}`,
+                `  colour      ${report.firstMaterial?.colour}`,
+                `  map         ${report.firstMaterial?.map}`,
+                `  colorSpace  ${report.firstMaterial?.colorSpace}`,
+                `maxTexture    ${report.maxTextureSize}`,
+                `webgl2        ${report.webgl2}`,
+                `gpu           ${report.gpu}`,
+              ].join('\n')
+            : 'reading renderer...'}
+        </pre>
+      )}
 
       <button
         type="button"
