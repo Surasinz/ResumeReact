@@ -104,59 +104,129 @@ export function getLoginFrame(phase, elapsedMs) {
 
 function drawLoginMonitor(context, width, height, time, phaseTime, accent, phase) {
   const frame = getLoginFrame(phase, phaseTime);
+  const marginX = width * 0.085;
+  const centreX = width / 2;
+  const pulse = 0.035 + Math.sin(time / 520) * 0.01;
+
   context.fillStyle = '#020509';
   context.fillRect(0, 0, width, height);
 
-  const panelX = width * 0.1;
-  const panelY = height * 0.11;
-  const panelWidth = width * 0.8;
-  const panelHeight = height * 0.78;
-  context.fillStyle = 'rgba(1, 6, 10, 0.9)';
-  context.fillRect(panelX, panelY, panelWidth, panelHeight);
-  context.strokeStyle = frame.granted ? '#ffffff' : accent;
-  context.lineWidth = Math.max(2, height * 0.004);
-  context.strokeRect(panelX, panelY, panelWidth, panelHeight);
+  // A restrained phosphor bloom makes the canvas feel emitted by the CRT,
+  // rather than like a bright rectangular card pasted over the model.
+  const glow = context.createRadialGradient(
+    centreX,
+    height * 0.46,
+    0,
+    centreX,
+    height * 0.46,
+    width * 0.48
+  );
+  glow.addColorStop(0, accent);
+  glow.addColorStop(1, 'transparent');
+  context.globalAlpha = pulse;
+  context.fillStyle = glow;
+  context.fillRect(0, 0, width, height);
+  context.globalAlpha = 1;
+
+  context.textBaseline = 'middle';
+  context.textAlign = 'left';
+  context.fillStyle = accent;
+  context.globalAlpha = 0.68;
+  context.font = `700 ${Math.round(height * 0.022)}px Consolas, monospace`;
+  context.fillText('SURACHET.OS  //  SECURE ACCESS', marginX, height * 0.09);
+  context.textAlign = 'right';
+  context.fillText('NODE 07  ONLINE', width - marginX, height * 0.09);
+  context.globalAlpha = 0.25;
+  context.fillRect(marginX, height * 0.125, width - marginX * 2, 1);
+  context.globalAlpha = 1;
 
   context.textAlign = 'center';
-  context.fillStyle = frame.granted ? '#ffffff' : accent;
-  context.font = `800 ${Math.round(height * 0.13)}px Consolas, monospace`;
-  context.fillText('LOGIN', width / 2, panelY + height * 0.2);
+  context.fillStyle = accent;
+  context.font = `800 ${Math.round(height * 0.105)}px Consolas, monospace`;
+  context.fillText('LOGIN', centreX, height * 0.3);
+  context.globalAlpha = 0.52;
+  context.font = `700 ${Math.round(height * 0.019)}px Consolas, monospace`;
+  context.fillText('AUTHORIZATION REQUIRED', centreX, height * 0.38);
+  context.globalAlpha = 1;
 
   if (phase === 'idle') {
-    const cursor = Math.floor(time / 450) % 2 === 0 ? ' █' : '';
-    context.font = `700 ${Math.round(height * 0.035)}px Consolas, monospace`;
-    context.fillText(`${frame.status}${cursor}`, width / 2, panelY + panelHeight * 0.72);
+    const cursor = Math.floor(time / 450) % 2 === 0 ? ' _' : '';
+    context.globalAlpha = 0.78;
+    context.font = `700 ${Math.round(height * 0.026)}px Consolas, monospace`;
+    context.fillText(`SYSTEM READY${cursor}`, centreX, height * 0.58);
+    context.globalAlpha = 0.42;
+    context.font = `700 ${Math.round(height * 0.018)}px Consolas, monospace`;
+    context.fillText(frame.status, centreX, height * 0.71);
+    context.globalAlpha = 1;
   } else {
-    const userY = panelY + panelHeight * 0.47;
-    const passwordY = panelY + panelHeight * 0.62;
+    const fieldX = width * 0.22;
+    const fieldWidth = width * 0.56;
+    const userY = height * 0.51;
+    const passwordY = height * 0.63;
     const cursorVisible = Math.floor(time / 320) % 2 === 0;
     const typingUsername = frame.username.length < LOGIN_USERNAME.length;
     const typingPassword = !typingUsername && frame.password.length < LOGIN_PASSWORD.length;
 
-    context.textAlign = 'center';
+    context.globalAlpha = 0.055;
+    context.fillStyle = accent;
+    context.fillRect(fieldX, userY - height * 0.045, fieldWidth, height * 0.083);
+    context.fillRect(fieldX, passwordY - height * 0.045, fieldWidth, height * 0.083);
+    context.globalAlpha = 0.34;
+    context.fillRect(fieldX, userY + height * 0.038, fieldWidth, 1);
+    context.fillRect(fieldX, passwordY + height * 0.038, fieldWidth, 1);
+
+    context.globalAlpha = 0.9;
+    context.textAlign = 'left';
     context.fillStyle = '#ffffff';
-    context.font = `700 ${Math.round(height * 0.038)}px Consolas, monospace`;
+    context.font = `700 ${Math.round(height * 0.032)}px Consolas, monospace`;
     context.fillText(
       `User Name : ${frame.username}${typingUsername && cursorVisible ? '█' : ''}`,
-      width / 2,
+      fieldX + width * 0.025,
       userY
     );
     context.fillText(
       `Password : ${frame.password}${typingPassword && cursorVisible ? '█' : ''}`,
-      width / 2,
+      fieldX + width * 0.025,
       passwordY
     );
 
+    const progress = phase === 'zooming'
+      ? 0
+      : phase === 'loading'
+        ? Math.min(1, phaseTime / (LOAD_SECONDS * 1000))
+        : 1;
+    const statusY = height * 0.79;
+    context.globalAlpha = 0.18;
+    context.fillStyle = accent;
+    context.fillRect(fieldX, statusY + height * 0.037, fieldWidth, 3);
+    context.globalAlpha = frame.granted ? 0.9 : 0.62;
+    context.fillRect(fieldX, statusY + height * 0.037, fieldWidth * progress, 3);
     context.textAlign = 'center';
-    context.fillStyle = frame.granted ? '#ffffff' : accent;
-    context.font = `800 ${Math.round(height * 0.04)}px Consolas, monospace`;
-    context.fillText(frame.status, width / 2, panelY + panelHeight * 0.82);
+    context.font = `800 ${Math.round(height * 0.024)}px Consolas, monospace`;
+    context.fillText(frame.status, centreX, statusY);
+    context.globalAlpha = 1;
   }
 
-  context.globalAlpha = 0.075;
+  // Sparse, low-contrast scanlines avoid moiré while the angled monitor moves.
+  context.globalAlpha = 0.025;
   context.fillStyle = '#ffffff';
-  for (let y = 0; y < height; y += 4) context.fillRect(0, y, width, 1);
+  for (let y = 0; y < height; y += 10) context.fillRect(0, y, width, 1);
+
+  const vignette = context.createRadialGradient(
+    centreX,
+    height / 2,
+    height * 0.12,
+    centreX,
+    height / 2,
+    width * 0.58
+  );
+  vignette.addColorStop(0, 'transparent');
+  vignette.addColorStop(1, '#000000');
+  context.globalAlpha = 0.42;
+  context.fillStyle = vignette;
+  context.fillRect(0, 0, width, height);
   context.globalAlpha = 1;
+  context.textBaseline = 'alphabetic';
 }
 
 function CameraRig({ phase, endZ, still }) {
