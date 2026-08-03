@@ -21,6 +21,7 @@ describe('production security headers', () => {
     );
 
     expect(directives['img-src']).toContain('blob:');
+    expect(directives['connect-src']).toContain('blob:');
     expect(directives['object-src']).toEqual(["'none'"]);
   });
 });
