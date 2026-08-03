@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import App from './App';
 import Atmosphere from './Atmosphere';
 import ComponentDocsPage from './ComponentDocsPage';
@@ -57,7 +57,14 @@ export default function SiteRouter() {
   const [introDone, setIntroDone] = useState(
     () => !isHomePath(pathname) || hasSeenIntro()
   );
+  const focusPortfolioRef = useRef(false);
   const showIntro = isHomePath(pathname) && !introDone;
+
+  useEffect(() => {
+    if (!introDone || !focusPortfolioRef.current) return;
+    document.getElementById('portfolio-main')?.focus({ preventScroll: true });
+    focusPortfolioRef.current = false;
+  }, [introDone]);
 
   return (
     <ThemeProvider>
@@ -74,6 +81,7 @@ export default function SiteRouter() {
             <IntroGate
               onEnter={() => {
                 markIntroSeen();
+                focusPortfolioRef.current = true;
                 setIntroDone(true);
               }}
             />

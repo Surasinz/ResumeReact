@@ -19,7 +19,9 @@ jest.mock('./IntroGate', () => ({
   ),
 }));
 
-jest.mock('./App', () => () => <div>PORTFOLIO_PAGE</div>);
+jest.mock('./App', () => () => (
+  <main id="portfolio-main" tabIndex="-1">PORTFOLIO_PAGE</main>
+));
 jest.mock('./CyberPages', () => ({
   ImpactPage: () => <div>IMPACT_PAGE</div>,
   InterviewPage: () => <div>INTERVIEW_PAGE</div>,
@@ -85,6 +87,7 @@ test('fronts the home page with the intro once per session', () => {
 
   fireEvent.click(screen.getByText('INTRO_GATE'));
   expect(screen.getByText('PORTFOLIO_PAGE')).toBeInTheDocument();
+  expect(screen.getByText('PORTFOLIO_PAGE')).toHaveFocus();
   expect(window.sessionStorage.getItem(INTRO_SESSION_KEY)).toBe('true');
 });
 

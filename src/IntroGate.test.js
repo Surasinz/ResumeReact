@@ -1,23 +1,17 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import fs from 'fs';
+import path from 'path';
 import IntroGate, {
   BRIGHT_SECONDS,
   INTRO_SESSION_KEY,
   LOAD_SECONDS,
   ZOOM_SECONDS,
+  getLoadingProgress,
   hasSeenIntro,
   markIntroSeen,
 } from './IntroGate';
 import { LanguageProvider } from './LanguageSystem';
 import { ThemeProvider } from './ThemeSystem';
-
-// Stands in for the whole 3D subtree. Rendering the children would hand r3f
-// primitives like <ambientLight> to the DOM renderer, which only produces
-// casing warnings -- the scene is not what these tests are about.
-jest.mock('@react-three/fiber', () => ({
-  Canvas: () => <div data-testid="intro-canvas" />,
-  useFrame: () => {},
-  useThree: () => ({ camera: {}, viewport: { width: 8, height: 5 } }),
-}));
 
 const renderGate = (onEnter = jest.fn()) => {
   const utils = render(
@@ -42,6 +36,16 @@ const advance = (seconds) =>
 beforeEach(() => {
   window.sessionStorage.clear();
   jest.useFakeTimers();
+  jest.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+    clearRect: jest.fn(),
+    createRadialGradient: jest.fn(() => ({ addColorStop: jest.fn() })),
+    fillRect: jest.fn(),
+    fillText: jest.fn(),
+    setTransform: jest.fn(),
+    strokeRect: jest.fn(),
+  });
+  jest.spyOn(window, 'requestAnimationFrame').mockReturnValue(1);
+  jest.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => {});
   Object.defineProperty(window, 'matchMedia', {
     configurable: true,
     value: jest.fn().mockReturnValue({
@@ -55,6 +59,7 @@ beforeEach(() => {
 afterEach(() => {
   jest.runOnlyPendingTimers();
   jest.useRealTimers();
+  jest.restoreAllMocks();
   window.sessionStorage.clear();
 });
 
@@ -69,29 +74,63 @@ test('waits on the visitor indefinitely instead of entering on its own', () => {
   expect(onEnter).not.toHaveBeenCalled();
 });
 
-/*
-  useFrame is mocked to never fire, so this also stands as the proof that the
-  sequence runs on timers rather than the render loop: if any step waited on
-  the 3D loop it would stall here instead of reaching the hand-off.
-*/
-test('runs zoom, load and brighten in order before handing over', () => {
+test('runs the hacker hand-off, zoom and fade in order before entering', () => {
   const { gate, onEnter } = renderGate();
 
   fireEvent.click(screen.getByRole('button', { name: 'Enter the portfolio' }));
-  expect(gate).toHaveAttribute('data-phase', 'zooming');
-  expect(onEnter).not.toHaveBeenCalled();
-
-  advance(ZOOM_SECONDS);
   expect(gate).toHaveAttribute('data-phase', 'loading');
   expect(onEnter).not.toHaveBeenCalled();
 
   advance(LOAD_SECONDS);
+  expect(gate).toHaveAttribute('data-phase', 'zooming');
+  expect(onEnter).not.toHaveBeenCalled();
+
+  advance(ZOOM_SECONDS);
   expect(gate).toHaveAttribute('data-phase', 'brighten');
   expect(onEnter).not.toHaveBeenCalled();
 
-  // Only once the room has blown out does the portfolio take over.
   advance(BRIGHT_SECONDS);
   expect(onEnter).toHaveBeenCalledTimes(1);
+});
+
+test('renders the layered room and animated hacker monitor without WebGL', () => {
+  const { container } = renderGate();
+
+  expect(screen.getByTestId('hacker-screen')).toBeInTheDocument();
+  expect(container.querySelectorAll('.intro-layer')).toHaveLength(3);
+  expect(container.querySelector('canvas')).toBeInTheDocument();
+});
+
+test('moves the layered room subtly with the pointer', () => {
+  const { gate } = renderGate();
+  let animationFrame;
+  window.requestAnimationFrame.mockImplementation((callback) => {
+    animationFrame = callback;
+    return 2;
+  });
+  gate.getBoundingClientRect = jest.fn(() => ({
+    left: 0,
+    top: 0,
+    width: 1000,
+    height: 500,
+  }));
+
+  fireEvent(gate, new MouseEvent('pointermove', {
+    bubbles: true,
+    clientX: 1000,
+    clientY: 500,
+  }));
+  act(() => animationFrame());
+
+  expect(gate.style.getPropertyValue('--intro-x')).toBe('1.000');
+  expect(gate.style.getPropertyValue('--intro-y')).toBe('1.000');
+});
+
+test('keeps loading progress monotonic within the boot phase', () => {
+  expect(getLoadingProgress(0)).toBe(72);
+  expect(getLoadingProgress((LOAD_SECONDS * 1000) / 2)).toBe(86);
+  expect(getLoadingProgress(LOAD_SECONDS * 1000)).toBe(100);
+  expect(getLoadingProgress(LOAD_SECONDS * 2000)).toBe(100);
 });
 
 test('offers a way out part-way through the sequence', () => {
@@ -101,8 +140,24 @@ test('offers a way out part-way through the sequence', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Enter the portfolio' }));
   advance(ZOOM_SECONDS);
 
+  expect(skip).toBeVisible();
+  expect(skip).toBeEnabled();
   fireEvent.click(skip);
   expect(onEnter).toHaveBeenCalledTimes(1);
+});
+
+test('does not hide or disable Skip with a transition-phase CSS rule', () => {
+  const styles = fs.readFileSync(
+    path.join(process.cwd(), 'src', 'IntroGate.css'),
+    'utf8'
+  );
+  const phaseSkipRule = styles.match(
+    /\.intro-gate:not\(\[data-phase=['"]idle['"]\]\)\s+\.intro-skip\s*\{([^}]*)\}/s
+  );
+
+  expect(phaseSkipRule?.[1] ?? '').not.toMatch(
+    /(?:opacity\s*:\s*0|pointer-events\s*:\s*none)/
+  );
 });
 
 test('hands over only once, however the visitor gets there', () => {

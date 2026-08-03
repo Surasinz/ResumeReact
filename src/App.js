@@ -734,7 +734,7 @@ function App() {
         </a>
       </header>
 
-      <main>
+      <main id="portfolio-main" tabIndex="-1">
         <section className="hero" id="top">
           <div className="hero-copy">
             <div className="availability" data-reveal>
