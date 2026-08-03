@@ -1,9 +1,20 @@
 [[headers]]
-  for = "*.gltf"
+  for = "/*.gltf"
   [headers.values]
     Content-Type = "model/gltf+json"
+    Cache-Control = "public, max-age=86400"
 
 [[headers]]
-  for = "*.glb"
+  for = "/*.glb"
   [headers.values]
     Content-Type = "model/gltf-binary"
+    Cache-Control = "public, max-age=86400"
+
+# CRA emits imported GLB assets below /static/media with a content hash.
+# This rule covers assets such as hacker-room.<hash>.glb and allows them to
+# remain cached permanently because a content change produces a new URL.
+[[headers]]
+  for = "/static/media/*.glb"
+  [headers.values]
+    Content-Type = "model/gltf-binary"
+    Cache-Control = "public, max-age=31536000, immutable"
