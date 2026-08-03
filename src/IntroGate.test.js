@@ -2,9 +2,12 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import IntroGate, {
   BRIGHT_SECONDS,
   INTRO_SESSION_KEY,
+  LOGIN_PASSWORD,
+  LOGIN_USERNAME,
   LOAD_SECONDS,
   ZOOM_SECONDS,
   getLandscapeBlend,
+  getLoginFrame,
   getScreenCameraDistance,
   hasSeenIntro,
   markIntroSeen,
@@ -113,6 +116,25 @@ test('blends portrait and landscape camera framing without a breakpoint jump', (
   const justBelow = getScreenCameraDistance(1.7, 1, 0.779);
   const justAbove = getScreenCameraDistance(1.7, 1, 0.781);
   expect(Math.abs(justAbove - justBelow)).toBeLessThan(0.02);
+});
+
+test('types the requested login credentials before granting access', () => {
+  expect(getLoginFrame('idle', 0)).toMatchObject({
+    username: '',
+    password: '',
+    status: 'PRESS ENTER PORTFOLIO',
+  });
+  expect(getLoginFrame('zooming', 780).username).toBe(LOGIN_USERNAME);
+  expect(getLoginFrame('zooming', 1510).password).toBe(LOGIN_PASSWORD);
+  expect(getLoginFrame('loading', 0)).toMatchObject({
+    username: LOGIN_USERNAME,
+    password: LOGIN_PASSWORD,
+    granted: false,
+  });
+  expect(getLoginFrame('loading', 930)).toMatchObject({
+    status: 'ACCESS GRANTED',
+    granted: true,
+  });
 });
 
 test('offers a way out part-way through the sequence', () => {

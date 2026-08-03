@@ -152,14 +152,16 @@
 @media (max-width: 720px) {
   /* Centred on a phone: there is no room beside the desk for a side menu. */
   .intro-menu {
+    top: auto;
     right: 50%;
+    bottom: clamp(7rem, 17vh, 10rem);
     justify-items: center;
     text-align: center;
-    transform: translate(50%, -50%);
+    transform: translateX(50%);
   }
 
   .intro-gate:not([data-phase='idle']) .intro-menu {
-    transform: translate(50%, -50%) translateY(1rem);
+    transform: translateX(50%) translateY(1rem);
   }
 }
 

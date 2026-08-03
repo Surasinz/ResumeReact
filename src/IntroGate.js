@@ -71,84 +71,89 @@ export const getScreenCameraDistance = (screenWidth, screenHeight, aspect) => {
   const horizontalZ = screenWidth / (2 * tan * aspect * SCREEN_FILL);
   return Math.max(verticalZ, mix(verticalZ, horizontalZ, getLandscapeBlend(aspect)));
 };
-const HACK_GLYPHS = '01<>[]{}/*+$#_';
-const HACK_LOGS = [
-  'TRACE ROUTE // NONTHABURI_TH',
-  'SCANNING ENTERPRISE MODULES',
-  'DATABASE TUNNEL // SECURE',
-  'IDENTITY // SURACHET_PANTO',
-];
+export const LOGIN_USERNAME = 'Hack is Come';
+export const LOGIN_PASSWORD = '************';
 
-function drawHackerMonitor(context, width, height, time, phaseTime, accent, phase) {
+export function getLoginFrame(phase, elapsedMs) {
+  const elapsed = Math.max(0, elapsedMs);
+  if (phase === 'idle') {
+    return { username: '', password: '', status: 'PRESS ENTER PORTFOLIO', granted: false };
+  }
+
+  const usernameLength = phase === 'zooming'
+    ? Math.min(LOGIN_USERNAME.length, Math.floor(elapsed / 65))
+    : LOGIN_USERNAME.length;
+  const passwordLength = phase === 'zooming'
+    ? Math.min(LOGIN_PASSWORD.length, Math.max(0, Math.floor((elapsed - 850) / 55)))
+    : LOGIN_PASSWORD.length;
+  const granted = phase === 'brighten'
+    || (phase === 'loading' && elapsed >= LOAD_SECONDS * 1000 * 0.62);
+  const loadingPercent = Math.min(100, Math.floor((elapsed / (LOAD_SECONDS * 1000)) * 100));
+
+  return {
+    username: LOGIN_USERNAME.slice(0, usernameLength),
+    password: LOGIN_PASSWORD.slice(0, passwordLength),
+    status: granted
+      ? 'ACCESS GRANTED'
+      : phase === 'loading'
+        ? `AUTHENTICATING... ${loadingPercent}%`
+        : 'AWAITING CREDENTIALS...',
+    granted,
+  };
+}
+
+function drawLoginMonitor(context, width, height, time, phaseTime, accent, phase) {
+  const frame = getLoginFrame(phase, phaseTime);
   context.fillStyle = '#020509';
   context.fillRect(0, 0, width, height);
 
-  const step = Math.floor(time / 85);
-  const glyphSize = 14;
-  const columns = Math.ceil(width / 24);
-  const rows = Math.ceil(height / 25);
-  context.font = `${glyphSize}px Consolas, monospace`;
-  context.textAlign = 'center';
-
-  for (let column = 0; column < columns; column += 1) {
-    const head = (step + column * 7) % (rows + 7);
-    for (let tail = 0; tail < 6; tail += 1) {
-      const row = head - tail;
-      if (row < 0 || row >= rows) continue;
-      const glyphIndex = (column * 13 + row * 5 + step) % HACK_GLYPHS.length;
-      context.globalAlpha = Math.max(0.04, 0.3 - tail * 0.045);
-      context.fillStyle = tail === 0 ? '#ffffff' : accent;
-      context.fillText(HACK_GLYPHS[glyphIndex], column * 24 + 12, row * 25 + 18);
-    }
-  }
-  context.globalAlpha = 1;
-
-  const panelX = 72;
-  const panelY = 62;
-  const panelWidth = 650;
-  const panelHeight = 370;
-  context.fillStyle = 'rgba(1, 6, 10, 0.86)';
+  const panelX = width * 0.1;
+  const panelY = height * 0.11;
+  const panelWidth = width * 0.8;
+  const panelHeight = height * 0.78;
+  context.fillStyle = 'rgba(1, 6, 10, 0.9)';
   context.fillRect(panelX, panelY, panelWidth, panelHeight);
-  context.strokeStyle = `${accent}a6`;
-  context.lineWidth = 2;
+  context.strokeStyle = frame.granted ? '#ffffff' : accent;
+  context.lineWidth = Math.max(2, height * 0.004);
   context.strokeRect(panelX, panelY, panelWidth, panelHeight);
 
-  context.textAlign = 'left';
-  context.fillStyle = accent;
-  context.font = '700 22px Consolas, monospace';
-  context.fillText('SURACHET_SECURE_SHELL // LIVE', panelX + 24, panelY + 42);
-  context.font = '17px Consolas, monospace';
-  HACK_LOGS.forEach((log, index) => {
-    context.globalAlpha = (step + index) % 5 === 0 ? 0.48 : 0.92;
-    context.fillStyle = index === 3 ? '#ffffff' : accent;
-    context.fillText(`> ${log}`, panelX + 24, panelY + 92 + index * 37);
-  });
-  context.globalAlpha = 1;
+  context.textAlign = 'center';
+  context.fillStyle = frame.granted ? '#ffffff' : accent;
+  context.font = `800 ${Math.round(height * 0.13)}px Consolas, monospace`;
+  context.fillText('LOGIN', width / 2, panelY + height * 0.2);
 
-  const idleProgress = 38 + ((time / 95) % 32);
-  const loadingProgress = 72 + Math.min(phaseTime / (LOAD_SECONDS * 1000), 1) * 28;
-  const progress = phase === 'idle' || phase === 'zooming'
-    ? idleProgress
-    : phase === 'loading'
-      ? loadingProgress
-      : 100;
-  const barX = panelX + 24;
-  const barY = panelY + panelHeight - 70;
-  const barWidth = panelWidth - 48;
-  context.fillStyle = `${accent}2b`;
-  context.fillRect(barX, barY, barWidth, 10);
-  context.fillStyle = accent;
-  context.fillRect(barX, barY, barWidth * (progress / 100), 10);
-  context.font = '700 16px Consolas, monospace';
-  context.fillText(
-    progress >= 100
-      ? 'ACCESS GRANTED // PORTFOLIO ONLINE'
-      : `DECRYPTING PORTFOLIO // ${Math.floor(progress)}%`,
-    barX,
-    barY + 36
-  );
+  if (phase === 'idle') {
+    const cursor = Math.floor(time / 450) % 2 === 0 ? ' █' : '';
+    context.font = `700 ${Math.round(height * 0.035)}px Consolas, monospace`;
+    context.fillText(`${frame.status}${cursor}`, width / 2, panelY + panelHeight * 0.72);
+  } else {
+    const userY = panelY + panelHeight * 0.47;
+    const passwordY = panelY + panelHeight * 0.62;
+    const cursorVisible = Math.floor(time / 320) % 2 === 0;
+    const typingUsername = frame.username.length < LOGIN_USERNAME.length;
+    const typingPassword = !typingUsername && frame.password.length < LOGIN_PASSWORD.length;
 
-  context.globalAlpha = 0.09;
+    context.textAlign = 'center';
+    context.fillStyle = '#ffffff';
+    context.font = `700 ${Math.round(height * 0.038)}px Consolas, monospace`;
+    context.fillText(
+      `User Name : ${frame.username}${typingUsername && cursorVisible ? '█' : ''}`,
+      width / 2,
+      userY
+    );
+    context.fillText(
+      `Password : ${frame.password}${typingPassword && cursorVisible ? '█' : ''}`,
+      width / 2,
+      passwordY
+    );
+
+    context.textAlign = 'center';
+    context.fillStyle = frame.granted ? '#ffffff' : accent;
+    context.font = `800 ${Math.round(height * 0.04)}px Consolas, monospace`;
+    context.fillText(frame.status, width / 2, panelY + panelHeight * 0.82);
+  }
+
+  context.globalAlpha = 0.075;
   context.fillStyle = '#ffffff';
   for (let y = 0; y < height; y += 4) context.fillRect(0, y, width, 1);
   context.globalAlpha = 1;
@@ -271,6 +276,7 @@ const ROOM_URL = roomModel;
 */
 function HackerRoom({ onMeasured, accent, phase, still }) {
   const { scene } = useGLTF(ROOM_URL);
+  const { gl } = useThree();
   const shiftRef = useRef(null);
   const monitorRef = useRef(null);
   const phaseStartedRef = useRef(0);
@@ -288,7 +294,7 @@ function HackerRoom({ onMeasured, accent, phase, still }) {
     const time = state.clock.getElapsedTime() * 1000;
     if (time - lastFrameRef.current < 33) return;
     if (!phaseStartedRef.current) phaseStartedRef.current = time;
-    drawHackerMonitor(
+    drawLoginMonitor(
       monitor.context,
       monitor.canvas.width,
       monitor.canvas.height,
@@ -361,13 +367,14 @@ function HackerRoom({ onMeasured, accent, phase, still }) {
     if (panel && typeof document !== 'undefined') {
       const canvas = document.createElement('canvas');
       canvas.width = 1024;
-      canvas.height = 512;
+      canvas.height = 576;
       const context = canvas.getContext('2d');
       if (context) {
         const texture = new CanvasTexture(canvas);
         texture.colorSpace = SRGBColorSpace;
         texture.minFilter = LinearFilter;
         texture.magFilter = LinearFilter;
+        texture.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy());
 
         const screenWidth = facesX ? size.z : size.x;
         const screenDepth = facesX ? size.x : size.z;
@@ -395,7 +402,7 @@ function HackerRoom({ onMeasured, accent, phase, still }) {
     });
 
     return disposeMonitor ?? undefined;
-  }, [scene, onMeasured]);
+  }, [scene, onMeasured, gl]);
 
   return (
     <>
