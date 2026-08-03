@@ -10,17 +10,11 @@
     Content-Type = "model/gltf-binary"
     Cache-Control = "public, max-age=86400"
 
-# CRA emits imported GLB assets below /static/media with a content hash, so
-# they can remain cached permanently because a content change produces a new URL.
+# CRA emits imported GLB assets below /static/media with a content hash.
+# This rule covers assets such as hacker-room.<hash>.glb and allows them to
+# remain cached permanently because a content change produces a new URL.
 [[headers]]
   for = "/static/media/*.glb"
   [headers.values]
     Content-Type = "model/gltf-binary"
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# The 2.5D intro layers are content-hashed WebP files emitted by CRA.
-[[headers]]
-  for = "/static/media/intro-*.webp"
-  [headers.values]
-    Content-Type = "image/webp"
     Cache-Control = "public, max-age=31536000, immutable"
