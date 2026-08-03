@@ -2,6 +2,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { Box3, Vector3 } from 'three';
+import roomModel from './assets/hacker-room.glb';
 import './IntroGate.css';
 import { LocalizedText, useLanguage } from './LanguageSystem';
 import { useTheme } from './ThemeSystem';
@@ -131,7 +132,14 @@ function CameraRig({ phase, endZ, still }) {
   return null;
 }
 
-const ROOM_URL = `${process.env.PUBLIC_URL}/hacker-room.glb`;
+/*
+  Imported rather than read from /public so the bundler gives it a
+  content-hashed filename. Served from public it was a fixed URL, and the file
+  behind that URL has already changed twice -- once to convert its materials --
+  which is exactly the case where a client can keep serving the previous copy
+  and show a stale model with none of the fixes.
+*/
+const ROOM_URL = roomModel;
 
 /*
   The imported room, re-anchored on its own monitor.
