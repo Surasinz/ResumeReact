@@ -1,21 +1,56 @@
-/*
-  Below the grain (z 95) so the texture carries across the room too. The
-  theme and language switches are not rendered at all during the intro, so
-  there is nothing above this to collide with.
-*/
+/* The intro owns the viewport until the final rendered clip hands off. */
 .intro-gate {
   position: fixed;
   z-index: 80;
   inset: 0;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(var(--acid-rgb), 0.08), transparent 22rem),
-    var(--ink);
+  background: #020306;
+  opacity: 1;
+  transition: opacity 550ms ease;
+}
+
+.intro-gate[data-phase='exiting'] {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .intro-stage {
   position: absolute;
   inset: 0;
+  overflow: hidden;
+  background: #020306;
+}
+
+.intro-poster,
+.intro-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.intro-poster {
+  filter: brightness(0.92) saturate(1.04);
+}
+
+.intro-video {
+  opacity: 0;
+  transition: opacity 240ms ease;
+}
+
+.intro-video.is-active {
+  opacity: 1;
+}
+
+.intro-video-grade {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent 48%, rgba(2, 3, 7, 0.54) 100%),
+    radial-gradient(circle at 50% 45%, transparent 48%, rgba(0, 0, 0, 0.3) 100%);
+  pointer-events: none;
 }
 
 /*
@@ -25,17 +60,18 @@
 .intro-menu {
   position: absolute;
   top: 50%;
-  right: clamp(1.5rem, 7vw, 6rem);
+  left: clamp(1.5rem, 7vw, 6rem);
   display: grid;
   gap: 0.55rem;
-  justify-items: end;
+  justify-items: start;
+  text-align: left;
   transform: translateY(-50%);
   transition: opacity 420ms ease, transform 420ms ease;
 }
 
 .intro-gate:not([data-phase='idle']) .intro-menu {
   opacity: 0;
-  transform: translateY(-50%) translateX(1.5rem);
+  transform: translateY(-50%) translateX(-1.5rem);
   pointer-events: none;
 }
 
@@ -63,11 +99,7 @@
   text-transform: uppercase;
 }
 
-/*
-  Type and hit area are floored independently of --intro-fit. Scaling them
-  with the scene drove the control under the 44px minimum tap target on a
-  phone, with type at a few pixels.
-*/
+/* Keep the real HTML control above the 44px minimum mobile hit target. */
 .intro-next {
   display: inline-flex;
   gap: 0.8em;
@@ -94,22 +126,6 @@
   box-shadow: 0 0 34px rgba(var(--acid-rgb), 0.4);
 }
 
-/*
-  The room blows out into this, and the portfolio is revealed underneath, so
-  the hand-off is a brightening rather than a cut.
-*/
-.intro-flash {
-  position: absolute;
-  inset: 0;
-  background: var(--ink);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.intro-gate[data-phase='brighten'] .intro-flash {
-  animation: intro-flash-in 750ms ease-in forwards;
-}
-
 .intro-status {
   position: absolute;
   width: 1px;
@@ -118,11 +134,6 @@
   clip: rect(0 0 0 0);
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-@keyframes intro-flash-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 /*
@@ -150,9 +161,29 @@
 }
 
 @media (max-width: 720px) {
+  .intro-poster,
+  .intro-video {
+    inset: auto;
+    top: 38%;
+    left: 50%;
+    width: 190vw;
+    height: auto;
+    max-width: none;
+    transform: translate(-65%, -50%);
+  }
+
+  .intro-video-grade {
+    background: radial-gradient(
+      circle at 50% 38%,
+      transparent 30%,
+      rgba(0, 0, 0, 0.38) 74%
+    );
+  }
+
   /* Centred on a phone: there is no room beside the desk for a side menu. */
   .intro-menu {
     top: auto;
+    left: auto;
     right: 50%;
     bottom: clamp(7rem, 17vh, 10rem);
     justify-items: center;
@@ -166,28 +197,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .intro-gate,
+  .intro-video,
   .intro-menu {
     transition-duration: 0.01ms;
   }
-
-  .intro-flash {
-    animation-duration: 0.01ms;
-  }
-}
-
-/* Opt-in diagnostic readout; only rendered when ?diag is in the URL. */
-.intro-diag {
-  position: absolute;
-  z-index: 5;
-  top: clamp(1rem, 3vh, 2rem);
-  left: clamp(1rem, 3vw, 2rem);
-  margin: 0;
-  border: 1px solid var(--acid);
-  padding: 0.9rem 1.1rem;
-  background: rgba(0, 0, 0, 0.82);
-  color: var(--acid);
-  font-family: "SFMono-Regular", Consolas, monospace;
-  font-size: 0.66rem;
-  line-height: 1.6;
-  white-space: pre;
 }

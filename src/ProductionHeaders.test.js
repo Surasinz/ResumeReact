@@ -24,4 +24,17 @@ describe('production security headers', () => {
     expect(directives['connect-src']).toContain('blob:');
     expect(directives['object-src']).toEqual(["'none'"]);
   });
+
+  test('serves hashed Unreal intro renders as immutable WebM media', () => {
+    const netlify = fs.readFileSync(
+      path.join(process.cwd(), 'netlify.toml'),
+      'utf8'
+    );
+
+    expect(netlify).toContain('for = "/static/media/*.webm"');
+    expect(netlify).toContain('Content-Type = "video/webm"');
+    expect(netlify).toContain(
+      'Cache-Control = "public, max-age=31536000, immutable"'
+    );
+  });
 });
