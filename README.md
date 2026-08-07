@@ -1,70 +1,78 @@
-# Getting Started with Create React App
+# Surachet Panto — Portfolio
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+[![Live portfolio](https://img.shields.io/badge/LIVE_PORTFOLIO-39ff14?style=for-the-badge&logo=netlify&logoColor=0a0a0f)](https://surachetresume.netlify.app/)
+[![React](https://img.shields.io/badge/React_19-00f3ff?style=for-the-badge&logo=react&logoColor=0a0a0f)](https://react.dev/)
+[![Netlify](https://img.shields.io/badge/Deployed_on_Netlify-ff35a2?style=for-the-badge&logo=netlify&logoColor=ffffff)](https://www.netlify.com/)
 
-## Available Scripts
+An interactive bilingual portfolio for an enterprise Software Engineer. The interface combines a cyberpunk visual system with accessible motion, measurable engineering outcomes, and focused recruiter-facing content.
 
-In the project directory, you can run:
+![Surachet Panto portfolio preview](https://raw.githubusercontent.com/Surasinz/ResumeReact/main/public/og.png)
 
-### `npm start`
+## Experience the site
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- [Portfolio](https://surachetresume.netlify.app/) — experience, education, skills, and featured project
+- [Impact Dashboard](https://surachetresume.netlify.app/impact) — measurable system, database, automation, and AI outcomes
+- [Interview Terminal](https://surachetresume.netlify.app/interview-me) — interactive answers to common interview questions
+- [Component Documentation](https://surachetresume.netlify.app/components) — implementation notes and live UI patterns
+- [Review Terminal](https://surachetresume.netlify.app/review) — Formspree-powered visitor and recruiter feedback
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Highlights
 
-### `npm test`
+- Cinematic WebM intro with session-aware playback and reduced-motion support
+- Adaptive light/dark theme with green-to-pink Matrix rain
+- English/Thai localization with Thai-optimized typography
+- Mouse spotlight avatar reveal, magnetic controls, scroll reveals, counters, and subtle parallax
+- Canvas liquid trail, custom theme-aware cursors, and draggable Web Shimeji mascot
+- Interactive Three.js helmet model and accessible animation controls
+- React Router data routing, lazy-loaded secondary pages, route metadata, and error boundaries
+- Responsive layouts with keyboard, touch, reduced-motion, and local preference support
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Stack
 
-### `npm run build`
+| Area | Technology |
+| --- | --- |
+| UI | React 19, React Router 7, CSS |
+| 3D and motion | Three.js, React Three Fiber, Drei, React Spring, Canvas |
+| Forms | React Router actions, Formspree |
+| Localization | Custom EN/TH dictionary, Noto Sans Thai Variable |
+| Testing | Testing Library, Jest |
+| Hosting | Netlify |
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Run locally
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Requirements: Node.js 20 or newer.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+git clone https://github.com/Surasinz/ResumeReact.git
+cd ResumeReact
+npm install
+npm start
+```
 
-### `npm run eject`
+The development server runs at `http://localhost:3000`.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Verify a change
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+npm test -- --watchAll=false --runInBand
+npm run build
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Netlify serves the Create React App production output from `build/`. The SPA redirect in `public/_redirects` keeps direct links such as `/impact` and `/interview-me` working after deployment.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Design principles
 
-## Learn More
+1. **Content before effects** — animation supports hierarchy and interaction without obscuring the resume.
+2. **Progressive enhancement** — the portfolio remains navigable when WebGL, canvas, or motion is unavailable.
+3. **Accessibility by default** — semantic controls, focus states, readable contrast, and `prefers-reduced-motion` behavior are part of the interface.
+4. **Measured engineering** — impact is described through outcomes rather than an unstructured technology list.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Contact
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+- Portfolio: [surachetresume.netlify.app](https://surachetresume.netlify.app/)
+- LinkedIn: [surachet-panto](https://www.linkedin.com/in/surachet-panto/)
+- Email: [surachetpan@hotmail.com](mailto:surachetpan@hotmail.com)
 
-### Code Splitting
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Designed and engineered by **Surachet Panto**.
