@@ -40,33 +40,38 @@ afterEach(() => {
   window.history.replaceState({}, '', '/');
 });
 
-test('renders direct portfolio routes without a feedback gate', () => {
+test('renders direct portfolio routes without a feedback gate', async () => {
   window.history.replaceState({}, '', '/impact');
   render(<SiteRouter />);
 
-  expect(screen.getByText('IMPACT_PAGE')).toBeInTheDocument();
+  expect(await screen.findByText('IMPACT_PAGE')).toBeInTheDocument();
+  expect(document.title).toBe('Impact Dashboard — Surachet Panto');
+  expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
+    'content',
+    expect.stringContaining('Measured enterprise system')
+  );
   expect(screen.queryByText('REVIEW_PAGE')).not.toBeInTheDocument();
 });
 
-test('routes review to the standalone feedback terminal', () => {
+test('routes review to the standalone feedback terminal', async () => {
   window.history.replaceState({}, '', '/review');
   render(<SiteRouter />);
 
-  expect(screen.getByText('REVIEW_PAGE')).toBeInTheDocument();
+  expect(await screen.findByText('REVIEW_PAGE')).toBeInTheDocument();
 });
 
-test('routes component documentation to its standalone design-system page', () => {
+test('routes component documentation to its standalone design-system page', async () => {
   window.history.replaceState({}, '', '/components');
   render(<SiteRouter />);
 
-  expect(screen.getByText('COMPONENT_DOCS_PAGE')).toBeInTheDocument();
+  expect(await screen.findByText('COMPONENT_DOCS_PAGE')).toBeInTheDocument();
 });
 
-test('renders unknown paths as the 404 page immediately', () => {
+test('renders unknown paths as the 404 page immediately', async () => {
   window.history.replaceState({}, '', '/unknown-system-route');
   render(<SiteRouter />);
 
-  expect(screen.getByText('NOT_FOUND_PAGE')).toBeInTheDocument();
+  expect(await screen.findByText('NOT_FOUND_PAGE')).toBeInTheDocument();
 });
 
 test('keeps untranslated route content marked as English in Thai mode', () => {
@@ -101,7 +106,7 @@ test('does not replay the intro once the session has seen it', () => {
   expect(screen.queryByText('INTRO_GATE')).not.toBeInTheDocument();
 });
 
-test('never interrupts a deep link with the intro', () => {
+test('never interrupts a deep link with the intro', async () => {
   for (const [path, marker] of [
     ['/impact', 'IMPACT_PAGE'],
     ['/components', 'COMPONENT_DOCS_PAGE'],
@@ -111,7 +116,7 @@ test('never interrupts a deep link with the intro', () => {
     window.sessionStorage.clear();
     window.history.replaceState({}, '', path);
     const view = render(<SiteRouter />);
-    expect(screen.getByText(marker)).toBeInTheDocument();
+    expect(await screen.findByText(marker)).toBeInTheDocument();
     expect(screen.queryByText('INTRO_GATE')).not.toBeInTheDocument();
     view.unmount();
   }
@@ -136,9 +141,9 @@ test('holds back the theme and language switches until the intro is through', ()
   ).toBeInTheDocument();
 });
 
-test('shows the switches immediately on a deep link', () => {
+test('shows the switches immediately on a deep link', async () => {
   window.history.replaceState({}, '', '/impact');
   render(<SiteRouter />);
 
-  expect(screen.getByRole('switch')).toBeInTheDocument();
+  expect(await screen.findByRole('switch')).toBeInTheDocument();
 });

@@ -13,6 +13,9 @@
 # CRA emits imported GLB assets below /static/media with a content hash.
 # This rule covers assets such as hacker-room.<hash>.glb and allows them to
 # remain cached permanently because a content change produces a new URL.
+[build.environment]
+  NODE_VERSION = "20"
+
 [[headers]]
   for = "/static/media/*.glb"
   [headers.values]

@@ -5,6 +5,8 @@ import PixelLiquidBackground from './PixelLiquidBackground';
 import { LocalizedText, useLanguage } from './LanguageSystem';
 import { useTheme } from './ThemeSystem';
 import WebShimeji from './shimeji/WebShimeji';
+import InternalLink from './InternalLink';
+import { ROUTES } from './routes';
 
 const PRISM_VERSION = '1.29.0';
 const PRISM_STYLES = [
@@ -778,9 +780,6 @@ export default function ComponentDocsPage() {
   const menuWasOpenRef = useRef(false);
 
   useEffect(() => {
-    const previousTitle = document.title;
-    document.title = 'Component Documentation — Surachet Panto';
-
     const handleHashChange = () => {
       const nextId = window.location.hash.slice(1);
       if (COMPONENTS.some((component) => component.id === nextId)) {
@@ -790,7 +789,6 @@ export default function ComponentDocsPage() {
     };
     window.addEventListener('hashchange', handleHashChange);
     return () => {
-      document.title = previousTitle;
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
@@ -850,14 +848,14 @@ export default function ComponentDocsPage() {
   return (
     <div className="component-docs-page">
       <header className="docs-mobile-header">
-        <a
-          href="/"
+        <InternalLink
+          href={ROUTES.home}
           className="docs-brand"
           aria-label={t('docs_back')}
           lang={language}
         >
           SP<span>.</span>
-        </a>
+        </InternalLink>
         <span>COMPONENT SYSTEM</span>
         <button
           type="button"
@@ -881,14 +879,14 @@ export default function ComponentDocsPage() {
         aria-hidden={isMobile && !menuOpen ? 'true' : undefined}
         inert={isMobile && !menuOpen ? true : undefined}
       >
-        <a
-          href="/"
+        <InternalLink
+          href={ROUTES.home}
           className="docs-brand"
           aria-label={t('docs_back')}
           lang={language}
         >
           SP<span>.</span>
-        </a>
+        </InternalLink>
         <div className="docs-sidebar-heading">
           <span>DS_01</span>
           <LocalizedText as="p" i18nKey="docs_title" />
@@ -1008,7 +1006,7 @@ export default function ComponentDocsPage() {
 
         <footer className="docs-page-footer">
           <span>SURACHET_UI // 2026</span>
-          <a href="/"><LocalizedText i18nKey="return_portfolio" /> ↗</a>
+          <InternalLink href={ROUTES.home}><LocalizedText i18nKey="return_portfolio" /> ↗</InternalLink>
         </footer>
       </main>
     </div>

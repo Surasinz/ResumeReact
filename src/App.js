@@ -6,6 +6,8 @@ import HelmetViewer from './HelmetViewer';
 import TechCore from './TechCore';
 import WebShimeji from './shimeji/WebShimeji';
 import ViewSidebar from './ViewSidebar';
+import InternalLink from './InternalLink';
+import { ROUTES } from './routes';
 import { useTheme } from './ThemeSystem';
 import { LocalizedText, useLanguage } from './LanguageSystem';
 
@@ -906,18 +908,18 @@ function App() {
             lang={language}
             data-reveal
           >
-            <a href="/impact">
+            <InternalLink href={ROUTES.impact}>
               <LocalizedText i18nKey="data_view" />
               <LocalizedText as="strong" i18nKey="impact_title" />
               <LocalizedText as="small" i18nKey="measured_outcomes" />
               <ArrowIcon />
-            </a>
-            <a href="/interview-me">
+            </InternalLink>
+            <InternalLink href={ROUTES.interview}>
               <LocalizedText i18nKey="interactive_view" />
               <LocalizedText as="strong" i18nKey="interview_title" />
               <LocalizedText as="small" i18nKey="ask_delivery" />
               <ArrowIcon />
-            </a>
+            </InternalLink>
           </nav>
         </section>
 

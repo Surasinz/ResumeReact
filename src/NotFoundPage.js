@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import './App.css';
 import './NotFoundPage.css';
 import ViewSidebar from './ViewSidebar';
+import InternalLink from './InternalLink';
 import { LocalizedText, useLanguage } from './LanguageSystem';
 import { splitGraphemes } from './graphemes';
+import { ROUTES } from './routes';
 
 const ERROR_LOG =
   '> PAGE NOT FOUND\n' +
@@ -42,7 +44,6 @@ export default function NotFoundPage() {
     `> ${t('error_action')}`;
 
   useEffect(() => {
-    document.title = '404 — Page Payload Not Found';
     setTypedLog('');
     setTypingComplete(false);
 
@@ -82,9 +83,9 @@ export default function NotFoundPage() {
       <div className="error-scanlines" aria-hidden="true" />
       <ViewSidebar currentPage="not-found" />
       <header className="error-header">
-        <a className="brand" href="/" aria-label="Surachet Panto — home">
+        <InternalLink className="brand" href={ROUTES.home} aria-label="Surachet Panto — home">
           SP<span>.</span>
-        </a>
+        </InternalLink>
         <span>ERR_ROUTE // UNRESOLVED</span>
       </header>
 
@@ -119,9 +120,9 @@ export default function NotFoundPage() {
           </div>
         </div>
 
-        <a className="error-reboot" href="/">
+        <InternalLink className="error-reboot" href={ROUTES.home}>
           <span>[ <LocalizedText i18nKey="error_reboot" /> ]</span>
-        </a>
+        </InternalLink>
       </section>
 
       <RepairBot messageVisible={typingComplete} message={t('error_warning')} />

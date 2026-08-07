@@ -1,78 +1,53 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { useFetcher } from 'react-router';
 import './App.css';
 import './GuestbookGate.css';
+import InternalLink from './InternalLink';
 import ViewSidebar from './ViewSidebar';
 import { LocalizedText, useLanguage } from './LanguageSystem';
+import { ROUTES } from './routes';
 
 // Replace only "mdaqjdba" when switching to another Formspree form ID.
 export const FORMSPREE_ENDPOINT = 'https://formspree.io/f/mdaqjdba';
 
+export async function guestbookAction({ request }) {
+  try {
+    const response = await fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      body: await request.formData(),
+      headers: { Accept: 'application/json' },
+      signal: request.signal,
+    });
+
+    return response.ok
+      ? { ok: true }
+      : { ok: false, status: response.status };
+  } catch (error) {
+    if (error.name === 'AbortError') throw error;
+    return { ok: false, status: 0 };
+  }
+}
+
 export default function GuestbookGate() {
   const { language, t } = useLanguage();
   const [visitorType, setVisitorType] = useState('visitor');
-  const [submitState, setSubmitState] = useState('idle');
-  const isMounted = useRef(true);
-  const submissionInFlight = useRef(false);
-  const requestController = useRef(null);
-
-  useEffect(() => {
-    const previousTitle = document.title;
-    isMounted.current = true;
-    document.title = 'Review Terminal — Surachet Panto';
-
-    return () => {
-      isMounted.current = false;
-      requestController.current?.abort();
-      document.title = previousTitle;
-    };
-  }, []);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    if (submissionInFlight.current) return;
-
-    submissionInFlight.current = true;
-    const controller = new AbortController();
-    requestController.current = controller;
-    setSubmitState('sending');
-
-    try {
-      const response = await window.fetch(FORMSPREE_ENDPOINT, {
-        method: 'POST',
-        body: new FormData(event.currentTarget),
-        headers: {
-          Accept: 'application/json',
-        },
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error('Formspree rejected the transmission.');
-      }
-
-      if (!isMounted.current) return;
-
-      setSubmitState('success');
-    } catch (error) {
-      if (isMounted.current && error.name !== 'AbortError') {
-        setSubmitState('error');
-      }
-    } finally {
-      if (requestController.current === controller) {
-        requestController.current = null;
-      }
-      submissionInFlight.current = false;
-    }
-  };
+  const fetcher = useFetcher();
+  const submitState = fetcher.state !== 'idle'
+    ? 'sending'
+    : fetcher.data?.ok
+      ? 'success'
+      : fetcher.data
+        ? 'error'
+        : 'idle';
 
   return (
     <main className="guestbook-gate">
       <div className="guestbook-scanlines" aria-hidden="true" />
       <ViewSidebar currentPage="review" />
       <header className="guestbook-header">
-        <a className="brand" href="/" aria-label="Surachet Panto — portfolio">
+        <InternalLink className="brand" href={ROUTES.home} aria-label="Surachet Panto — portfolio">
           SP<span>.</span>
-        </a>
+        </InternalLink>
         <span>FEEDBACK_NODE // REVIEW_TERMINAL</span>
       </header>
 
@@ -106,11 +81,7 @@ export default function GuestbookGate() {
             <b>FORM_ID: MDAQJDBA</b>
           </div>
 
-          <form
-            action={FORMSPREE_ENDPOINT}
-            method="POST"
-            onSubmit={handleSubmit}
-          >
+          <fetcher.Form method="post" action={ROUTES.review} data-formspree-endpoint={FORMSPREE_ENDPOINT}>
             <input
               type="hidden"
               name="_subject"
@@ -205,9 +176,9 @@ export default function GuestbookGate() {
                     : `[ ${t('transmit')} ]`}
                 </span>
               </button>
-              <a className="guestbook-skip" href="/">
+              <InternalLink className="guestbook-skip" href={ROUTES.home}>
                 {t('return_portfolio')} →
-              </a>
+              </InternalLink>
             </div>
 
             <p
@@ -220,7 +191,7 @@ export default function GuestbookGate() {
               {submitState === 'success' && t('feedback_success')}
               {submitState === 'error' && t('feedback_error')}
             </p>
-          </form>
+          </fetcher.Form>
         </div>
       </section>
 

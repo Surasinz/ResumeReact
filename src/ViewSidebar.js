@@ -1,34 +1,36 @@
 import './ViewSidebar.css';
+import InternalLink from './InternalLink';
 import { LocalizedText, useLanguage } from './LanguageSystem';
+import { ROUTES } from './routes';
 
 const sidebarLinks = [
   {
     id: 'review',
-    href: '/review',
+    href: ROUTES.review,
     code: 'REV',
     labelKey: 'sidebar_review',
   },
   {
     id: 'not-found',
-    href: '/404',
+    href: ROUTES.notFound,
     code: '404',
     labelKey: 'sidebar_404',
   },
   {
     id: 'impact',
-    href: '/impact',
+    href: ROUTES.impact,
     code: 'IMP',
     labelKey: 'sidebar_impact',
   },
   {
     id: 'interview',
-    href: '/interview-me',
+    href: ROUTES.interview,
     code: 'Q&A',
     labelKey: 'sidebar_interview',
   },
   {
     id: 'components',
-    href: '/components',
+    href: ROUTES.components,
     code: 'UI',
     labelKey: 'sidebar_components',
   },
@@ -48,7 +50,7 @@ export default function ViewSidebar({ currentPage }) {
           const isCurrent = currentPage === item.id;
 
           return (
-            <a
+            <InternalLink
               className={isCurrent ? 'is-current' : ''}
               href={item.href}
               key={item.id}
@@ -63,7 +65,7 @@ export default function ViewSidebar({ currentPage }) {
               <span className="view-sidebar-label" aria-hidden="true">
                 <LocalizedText i18nKey={item.labelKey} />
               </span>
-            </a>
+            </InternalLink>
           );
         })}
       </nav>

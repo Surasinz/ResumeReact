@@ -1,0 +1,36 @@
+.route-error {
+  display: grid;
+  place-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 2rem;
+  background: #0a0a0f;
+  color: #f4f1ea;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  text-align: center;
+}
+
+.route-error > p {
+  color: var(--acid, #39ff14);
+  letter-spacing: 0.14em;
+}
+
+.route-error h1 {
+  margin: 0.6rem 0;
+  font-size: clamp(2.5rem, 8vw, 6rem);
+}
+
+.route-error pre {
+  max-width: 56rem;
+  white-space: pre-wrap;
+  color: rgba(244, 241, 234, 0.68);
+}
+
+.route-error a {
+  justify-self: center;
+  margin-top: 1.5rem;
+  border: 1px solid var(--acid, #39ff14);
+  padding: 0.9rem 1.2rem;
+  color: var(--acid, #39ff14);
+  text-decoration: none;
+}

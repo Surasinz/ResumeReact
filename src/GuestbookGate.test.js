@@ -1,5 +1,25 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import GuestbookGate, { FORMSPREE_ENDPOINT } from './GuestbookGate';
+import { createMemoryRouter, RouterProvider } from 'react-router';
+import GuestbookGate, {
+  FORMSPREE_ENDPOINT,
+  guestbookAction,
+} from './GuestbookGate';
+import { ROUTES } from './routes';
+
+function renderReview() {
+  const router = createMemoryRouter(
+    [
+      {
+        path: ROUTES.review,
+        Component: GuestbookGate,
+        action: guestbookAction,
+      },
+    ],
+    { initialEntries: [ROUTES.review] }
+  );
+
+  return render(<RouterProvider router={router} />);
+}
 
 beforeEach(() => {
   Object.defineProperty(window, 'fetch', {
@@ -13,11 +33,12 @@ afterEach(() => {
 });
 
 test('renders the standalone Formspree form and switches visitor-specific fields', () => {
-  render(<GuestbookGate />);
+  renderReview();
   const form = document.querySelector('form');
 
-  expect(form).toHaveAttribute('action', FORMSPREE_ENDPOINT);
-  expect(form).toHaveAttribute('method', 'POST');
+  expect(form).toHaveAttribute('action', ROUTES.review);
+  expect(form).toHaveAttribute('method', 'post');
+  expect(form).toHaveAttribute('data-formspree-endpoint', FORMSPREE_ENDPOINT);
   expect(form.querySelector('input[name="_subject"]')).toHaveValue(
     'New Website Visitor & Feedback!'
   );
@@ -50,7 +71,7 @@ test('renders the standalone Formspree form and switches visitor-specific fields
 
 test('transmits FormData to Formspree and confirms success on the review page', async () => {
   window.fetch.mockResolvedValue({ ok: true });
-  render(<GuestbookGate />);
+  renderReview();
 
   fireEvent.change(screen.getByLabelText(/01 \/\/ Name/i), {
     target: { value: 'Test Visitor' },
@@ -80,7 +101,7 @@ test('transmits FormData to Formspree and confirms success on the review page', 
 
 test('keeps the review form visible when Formspree rejects the transmission', async () => {
   window.fetch.mockResolvedValue({ ok: false });
-  render(<GuestbookGate />);
+  renderReview();
 
   fireEvent.change(screen.getByLabelText(/01 \/\/ Name/i), {
     target: { value: 'Test Visitor' },
@@ -97,22 +118,18 @@ test('keeps the review form visible when Formspree rejects the transmission', as
   );
 });
 
-test('guards against duplicate synchronous submissions', () => {
+test('disables transmission while the route action is pending', async () => {
   window.fetch.mockReturnValue(new Promise(() => {}));
-  render(<GuestbookGate />);
-  const form = document.querySelector('form');
+  renderReview();
 
-  fireEvent.submit(form);
-  fireEvent.submit(form);
+  fireEvent.change(screen.getByLabelText(/01 \/\/ Name/i), {
+    target: { value: 'Test Visitor' },
+  });
+  fireEvent.change(screen.getByLabelText(/Website Feedback/i), {
+    target: { value: 'Test feedback' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: /TRANSMIT DATA/i }));
 
+  expect(await screen.findByRole('button', { name: /TRANSMITTING/i })).toBeDisabled();
   expect(window.fetch).toHaveBeenCalledTimes(1);
-});
-
-test('restores the previous document title when the review page closes', () => {
-  document.title = 'Original Portfolio Title';
-  const { unmount } = render(<GuestbookGate />);
-
-  expect(document.title).toBe('Review Terminal — Surachet Panto');
-  unmount();
-  expect(document.title).toBe('Original Portfolio Title');
 });

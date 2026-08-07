@@ -1,0 +1,49 @@
+.route-progress {
+  position: fixed;
+  z-index: 1000000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.route-boot {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: #0a0a0f;
+  color: #39ff14;
+  font: 700 0.7rem "SFMono-Regular", Consolas, monospace;
+  letter-spacing: 0.14em;
+}
+
+.route-progress.is-active {
+  opacity: 1;
+}
+
+.route-progress::after {
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  background: linear-gradient(90deg, transparent, var(--acid), var(--electric), transparent);
+  box-shadow: 0 0 14px rgba(var(--acid-rgb), 0.65);
+  content: '';
+  animation: route-progress-scan 850ms ease-in-out infinite;
+}
+
+@keyframes route-progress-scan {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(340%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-progress::after {
+    width: 100%;
+    animation: none;
+  }
+}

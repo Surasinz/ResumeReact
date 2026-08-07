@@ -1,32 +1,24 @@
 import { useEffect, useRef, useState } from 'react';
-import App from './App';
-import Atmosphere from './Atmosphere';
-import ComponentDocsPage from './ComponentDocsPage';
-import IntroGate, { hasSeenIntro, markIntroSeen } from './IntroGate';
-import { ImpactPage, InterviewPage } from './CyberPages';
-import GuestbookGate from './GuestbookGate';
-import NotFoundPage from './NotFoundPage';
-import { ThemeProvider, ThemeToggle, useTheme } from './ThemeSystem';
 import {
-  LanguageProvider,
-  LanguageToggle,
-} from './LanguageSystem';
+  createBrowserRouter,
+  Outlet,
+  RouterProvider,
+  ScrollRestoration,
+  useLocation,
+  useNavigation,
+} from 'react-router';
+import Atmosphere from './Atmosphere';
+import IntroGate, { hasSeenIntro, markIntroSeen } from './IntroGate';
+import RouteErrorBoundary from './RouteErrorBoundary';
+import { ThemeProvider, ThemeToggle, useTheme } from './ThemeSystem';
+import { LanguageProvider, LanguageToggle } from './LanguageSystem';
+import { ROUTES } from './routes';
+import { Component as HomeRoute } from './routes/HomeRoute';
+import './SiteRouter.css';
 
 export function isHomePath(pathname) {
-  return (pathname.replace(/\/+$/, '') || '/') === '/';
+  return (pathname.replace(/\/+$/, '') || '/') === ROUTES.home;
 }
-
-export function resolvePage(pathname) {
-  const normalizedPath = pathname.replace(/\/+$/, '') || '/';
-
-  if (normalizedPath === '/impact') return <ImpactPage />;
-  if (normalizedPath === '/interview-me') return <InterviewPage />;
-  if (normalizedPath === '/components') return <ComponentDocsPage />;
-  if (normalizedPath === '/review') return <GuestbookGate />;
-  if (normalizedPath === '/') return <App />;
-  return <NotFoundPage />;
-}
-
 
 function SiteCursorScope({ children }) {
   const { theme } = useTheme();
@@ -46,14 +38,30 @@ function SiteCursorScope({ children }) {
   );
 }
 
-export default function SiteRouter() {
-  const pathname = window.location.pathname;
-  /*
-    The intro only fronts the home page, and only once per browser session.
-    Deep links to /impact or /components are never interrupted, and coming
-    back to the portfolio from one of them does not replay it -- the visitor
-    already watched it.
-  */
+function NavigationProgress() {
+  const navigation = useNavigation();
+  const isActive = navigation.state !== 'idle';
+
+  return (
+    <div
+      className={`route-progress${isActive ? ' is-active' : ''}`}
+      role="progressbar"
+      aria-label="Loading page"
+      aria-hidden={!isActive}
+    />
+  );
+}
+
+function RouteBootFallback() {
+  return (
+    <div className="route-boot" role="status" aria-label="Loading interface">
+      INITIALIZING_INTERFACE
+    </div>
+  );
+}
+
+function RouterLayout() {
+  const { pathname } = useLocation();
   const [introDone, setIntroDone] = useState(
     () => !isHomePath(pathname) || hasSeenIntro()
   );
@@ -67,28 +75,57 @@ export default function SiteRouter() {
   }, [introDone]);
 
   return (
+    <>
+      {!showIntro && <ThemeToggle />}
+      {!showIntro && <LanguageToggle />}
+      <SiteCursorScope>
+        <NavigationProgress />
+        {showIntro ? (
+          <IntroGate
+            onEnter={() => {
+              markIntroSeen();
+              focusPortfolioRef.current = true;
+              setIntroDone(true);
+            }}
+          />
+        ) : (
+          <Outlet />
+        )}
+        <ScrollRestoration />
+      </SiteCursorScope>
+    </>
+  );
+}
+
+export const routeDefinitions = [
+  {
+    path: ROUTES.home,
+    Component: RouterLayout,
+    ErrorBoundary: RouteErrorBoundary,
+    HydrateFallback: RouteBootFallback,
+    children: [
+      { index: true, Component: HomeRoute },
+      { path: ROUTES.impact.slice(1), lazy: () => import('./routes/ImpactRoute') },
+      { path: ROUTES.interview.slice(1), lazy: () => import('./routes/InterviewRoute') },
+      { path: ROUTES.components.slice(1), lazy: () => import('./routes/ComponentsRoute') },
+      { path: ROUTES.review.slice(1), lazy: () => import('./routes/ReviewRoute') },
+      { path: ROUTES.notFound.slice(1), lazy: () => import('./routes/NotFoundRoute') },
+      { path: '*', lazy: () => import('./routes/NotFoundRoute') },
+    ],
+  },
+];
+
+export function createSiteRouter() {
+  return createBrowserRouter(routeDefinitions);
+}
+
+export default function SiteRouter() {
+  const [router] = useState(createSiteRouter);
+
+  return (
     <ThemeProvider>
       <LanguageProvider>
-        {/*
-          Held back until the visitor is through. The intro is a single
-          composed shot, and floating switches over it break that -- they
-          belong to the portfolio, so they arrive with it.
-        */}
-        {!showIntro && <ThemeToggle />}
-        {!showIntro && <LanguageToggle />}
-        <SiteCursorScope>
-          {showIntro ? (
-            <IntroGate
-              onEnter={() => {
-                markIntroSeen();
-                focusPortfolioRef.current = true;
-                setIntroDone(true);
-              }}
-            />
-          ) : (
-            resolvePage(pathname)
-          )}
-        </SiteCursorScope>
+        <RouterProvider router={router} />
       </LanguageProvider>
     </ThemeProvider>
   );

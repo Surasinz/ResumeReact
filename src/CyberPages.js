@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import './App.css';
 import './CyberPages.css';
 import ViewSidebar from './ViewSidebar';
+import InternalLink from './InternalLink';
 import { LocalizedText, useLanguage } from './LanguageSystem';
 import { splitGraphemes } from './graphemes';
+import { ROUTES } from './routes';
 
 const impactCategories = [
   {
@@ -92,25 +94,25 @@ function CyberHeader({ activePage }) {
 
   return (
     <header className="cyber-header">
-      <a className="brand" href="/" aria-label="Surachet Panto — home">
+      <InternalLink className="brand" href={ROUTES.home} aria-label="Surachet Panto — home">
         SP<span>.</span>
-      </a>
+      </InternalLink>
       <nav aria-label={t('explore_portfolio_views')} lang={language}>
-        <a href="/"><LocalizedText i18nKey="header_portfolio" /></a>
-        <a
+        <InternalLink href={ROUTES.home}><LocalizedText i18nKey="header_portfolio" /></InternalLink>
+        <InternalLink
           className={activePage === 'impact' ? 'is-active' : ''}
-          href="/impact"
+          href={ROUTES.impact}
           aria-current={activePage === 'impact' ? 'page' : undefined}
         >
           <LocalizedText i18nKey="header_impact" />
-        </a>
-        <a
+        </InternalLink>
+        <InternalLink
           className={activePage === 'interview' ? 'is-active' : ''}
-          href="/interview-me"
+          href={ROUTES.interview}
           aria-current={activePage === 'interview' ? 'page' : undefined}
         >
           <LocalizedText i18nKey="header_interview" />
-        </a>
+        </InternalLink>
       </nav>
     </header>
   );
@@ -211,9 +213,6 @@ function CyberPageIntro({ index, eyebrowKey, titleKey, descriptionKey }) {
 
 export function ImpactPage() {
   const { language, t } = useLanguage();
-  useEffect(() => {
-    document.title = 'Impact Dashboard — Surachet Panto';
-  }, []);
 
   return (
     <div className="cyber-page">
@@ -259,10 +258,10 @@ export function ImpactPage() {
           ))}
         </section>
 
-        <a className="cyber-next-view" href="/interview-me">
+        <InternalLink className="cyber-next-view" href={ROUTES.interview}>
           <LocalizedText i18nKey="next_interface" />
           <LocalizedText i18nKey="sidebar_interview" /> <b aria-hidden="true">→</b>
-        </a>
+        </InternalLink>
       </main>
       <CyberFooter />
     </div>
@@ -278,10 +277,6 @@ export function InterviewPage() {
     (item) => item.id === selectedId
   );
   const selectedAnswer = selectedQuestion ? t(selectedQuestion.answerKey) : '';
-
-  useEffect(() => {
-    document.title = 'Interview Terminal — Surachet Panto';
-  }, []);
 
   useEffect(() => {
     if (!selectedQuestion) return undefined;
@@ -405,10 +400,10 @@ export function InterviewPage() {
           </div>
         </section>
 
-        <a className="cyber-next-view" href="/impact">
+        <InternalLink className="cyber-next-view" href={ROUTES.impact}>
           <LocalizedText i18nKey="inspect_data" />
           <LocalizedText i18nKey="return_impact" /> <b aria-hidden="true">←</b>
-        </a>
+        </InternalLink>
       </main>
       <CyberFooter />
     </div>
@@ -418,9 +413,9 @@ export function InterviewPage() {
 function CyberFooter() {
   return (
     <footer className="cyber-footer">
-      <a className="brand" href="/">
+      <InternalLink className="brand" href={ROUTES.home}>
         SP<span>.</span>
-      </a>
+      </InternalLink>
       <p>Enterprise Builder // Surachet Panto</p>
       <a href="mailto:surachetpan@hotmail.com">
         <LocalizedText i18nKey="initialize_contact" /> ↗
